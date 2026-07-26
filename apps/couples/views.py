@@ -1,6 +1,7 @@
 """Vues couple — orchestration uniquement."""
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.views import View
 from django.views.generic import TemplateView
@@ -80,6 +81,23 @@ class WaitingView(LoginRequiredMixin, TemplateView):
             self.request.user
         )
         return ctx
+
+
+@login_required
+def waiting_status(request, code):
+    """Retourne l'état du couple pour la page d'attente afin de rediriger automatiquement."""
+    couple = CoupleService.get_couple_by_code(code)
+    if not couple:
+        return JsonResponse({"success": False, "ready": False, "error": "Room introuvable"}, status=404)
+
+    if couple.contains(request.user):
+        return JsonResponse({
+            "success": True,
+            "ready": couple.is_complete,
+            "redirect_url": request.build_absolute_uri("/couples/"),
+        })
+
+    return JsonResponse({"success": False, "ready": False, "error": "Vous n'êtes pas membre de cette room"}, status=403)
 
 
 class SetupView(LoginRequiredMixin, View):
