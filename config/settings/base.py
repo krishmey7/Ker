@@ -106,17 +106,26 @@ STORAGES = {
 }
 
 # Database configuration - PostgreSQL in production, SQLite in development
-DATABASES = {
-    'default': dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
-        conn_max_age=600,
-    )
-}
+# 1. Parsing propre de l'URL
+db_config = dj_database_url.config(
+    default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+    conn_max_age=600,
+    ssl_require=False
+)
 
-# Sécurité pour éliminer toute option "timeout" ou "connect_timeout" parasite
-if 'OPTIONS' in DATABASES['default']:
-    DATABASES['default']['OPTIONS'].pop('timeout', None)
-    DATABASES['default']['OPTIONS'].pop('connect_timeout', None)
+# 2. Suppression de "timeout" et "connect_timeout" S'IL Y EN A partout dans le dict
+for key in list(db_config.keys()):
+    if key in ['timeout', 'connect_timeout']:
+        del db_config[key]
+
+# 3. Nettoyage dans le sous-dictionnaire OPTIONS s'il existe
+if 'OPTIONS' in db_config:
+    db_config['OPTIONS'].pop('timeout', None)
+    db_config['OPTIONS'].pop('connect_timeout', None)
+
+DATABASES = {
+    'default': db_config
+}
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
