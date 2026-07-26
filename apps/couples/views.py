@@ -76,11 +76,13 @@ class WaitingView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        code = self.kwargs["code"]
-        ctx["room_code"] = code
-        ctx["couple"] = CoupleService.get_pending_couple(self.request.user) or CoupleService.get_active_couple(
-            self.request.user
-        )
+        couple = CoupleService.get_pending_couple(self.request.user) or CoupleService.get_active_couple(self.request.user)
+        if couple:
+            ctx["room_code"] = couple.room_code
+            ctx["couple"] = couple
+        else:
+            ctx["room_code"] = self.kwargs.get("code", "")
+            ctx["couple"] = None
         return ctx
 
 

@@ -12,8 +12,9 @@
     <h1 class="text-xl font-semibold text-white/90">En attente de votre moitié</h1>
     <p class="text-white/50 mt-2 text-sm">Partagez ce code magique</p>
   </div>
-  <p class="text-4xl font-bold tracking-[0.2em] text-transparent bg-clip-text bg-gradient-to-r from-love-soft via-white to-premium-soft"
-     x-text="code"></p>
+  <p class="text-4xl font-bold tracking-[0.2em] text-transparent bg-clip-text bg-gradient-to-r from-love-soft via-white to-premium-soft">
+    {{ room_code }}
+  </p>
   <p class="text-xs text-white/35 uppercase tracking-widest">Connexion automatique</p>
   <p class="text-sm text-white/50" id="waiting-status-message">La room se lance automatiquement dès que votre partenaire a rejoint.</p>
 </section>
