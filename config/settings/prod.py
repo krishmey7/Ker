@@ -10,24 +10,29 @@ SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 
 # Récupération de la base via dj-database-url (plus fiable sur Render)
-# 1. Parsing propre de l'URL
-db_config = dj_database_url.config(
-    conn_max_age=600,
-    ssl_require=False
-)
+# Parsing manuel pour éviter les options non supportées par psycopg2
+db_url = env('DATABASE_URL', default=None)
 
-# 2. Suppression de toutes les options non supportées par psycopg2
-unsupported_options = ['timeout', 'connect_timeout', 'options']
-for key in list(db_config.keys()):
-    if key in unsupported_options:
-        del db_config[key]
-
-# 3. Nettoyage complet du sous-dictionnaire OPTIONS s'il existe
-if 'OPTIONS' in db_config:
-    for opt_key in list(db_config['OPTIONS'].keys()):
-        if opt_key in ['timeout', 'connect_timeout', 'sslmode']:
-            db_config['OPTIONS'].pop(opt_key, None)
-
-DATABASES = {
-    'default': db_config
-}
+if db_url:
+    # Parse l'URL et reconstruit avec seulement les options supportées
+    parsed = dj_database_url.parse(db_url)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': parsed.get('NAME', ''),
+            'USER': parsed.get('USER', ''),
+            'PASSWORD': parsed.get('PASSWORD', ''),
+            'HOST': parsed.get('HOST', ''),
+            'PORT': parsed.get('PORT', ''),
+            'CONN_MAX_AGE': 600,
+            'OPTIONS': {},
+        }
+    }
+else:
+    # Fallback si pas de DATABASE_URL
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
