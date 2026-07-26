@@ -1,5 +1,5 @@
 """Paramètres production – PostgreSQL, sécurité renforcée."""
-import dj_database_url
+from urllib.parse import urlparse
 from .base import *  # noqa: F403
 
 DEBUG = False
@@ -9,21 +9,20 @@ CSRF_COOKIE_SECURE = True
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 
-# Récupération de la base via dj-database-url (plus fiable sur Render)
-# Parsing manuel pour éviter les options non supportées par psycopg2
+# Récupération de la base via parsing manuel (sans dj_database_url pour éviter timeout)
 db_url = env('DATABASE_URL', default=None)
 
 if db_url:
-    # Parse l'URL et reconstruit avec seulement les options supportées
-    parsed = dj_database_url.parse(db_url)
+    # Parse manuel avec urllib.parse pour éviter toute option non supportée
+    parsed = urlparse(db_url)
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': parsed.get('NAME', ''),
-            'USER': parsed.get('USER', ''),
-            'PASSWORD': parsed.get('PASSWORD', ''),
-            'HOST': parsed.get('HOST', ''),
-            'PORT': parsed.get('PORT', ''),
+            'NAME': parsed.path.lstrip('/'),
+            'USER': parsed.username or '',
+            'PASSWORD': parsed.password or '',
+            'HOST': parsed.hostname or '',
+            'PORT': parsed.port or '',
             'CONN_MAX_AGE': 600,
             'OPTIONS': {},
         }

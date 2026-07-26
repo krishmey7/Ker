@@ -3,7 +3,7 @@ Paramètres Django partagés — architecture production-ready.
 """
 from pathlib import Path
 
-import dj_database_url
+from urllib.parse import urlparse
 import environ
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -106,20 +106,20 @@ STORAGES = {
 }
 
 # Database configuration - PostgreSQL in production, SQLite in development
-# Parsing manuel pour éviter les options non supportées par psycopg2
+# Parsing manuel avec urllib.parse pour éviter toute option non supportée
 db_url = env('DATABASE_URL', default=None)
 
 if db_url:
-    # Parse l'URL et reconstruit avec seulement les options supportées
-    parsed = dj_database_url.parse(db_url)
+    # Parse manuel avec urllib.parse pour éviter toute option non supportée
+    parsed = urlparse(db_url)
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': parsed.get('NAME', ''),
-            'USER': parsed.get('USER', ''),
-            'PASSWORD': parsed.get('PASSWORD', ''),
-            'HOST': parsed.get('HOST', ''),
-            'PORT': parsed.get('PORT', ''),
+            'NAME': parsed.path.lstrip('/'),
+            'USER': parsed.username or '',
+            'PASSWORD': parsed.password or '',
+            'HOST': parsed.hostname or '',
+            'PORT': parsed.port or '',
             'CONN_MAX_AGE': 600,
             'OPTIONS': {},
         }
