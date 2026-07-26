@@ -1,7 +1,7 @@
 """Paramètres développement — SQLite, debug activé."""
 from .base import *  # noqa: F403
 
-DEBUG = False
+DEBUG = True
 
 # Téléphone / tablette sur le Wi‑Fi : évite DisallowedHost (IP LAN change souvent)
 ALLOWED_HOSTS = ["*"]
@@ -9,9 +9,7 @@ ALLOWED_HOSTS = ["*"]
 DATABASES = {
     "default": {
         **env.db("DATABASE_URL", default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}"),  # noqa: F405
-        "OPTIONS": {
-            "timeout": 30,
-        },
+        "OPTIONS": {},
     },
 }
 
