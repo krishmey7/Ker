@@ -2,41 +2,7 @@
 {% block title %}En attente — K'er{% endblock %}
 {% block content %}
 <section class="flex-1 flex flex-col items-center justify-center text-center gap-8 animate-fade-in"
-         x-data="{
-           code: '{{ room_code }}',
-           autoRedirecting: false,
-           init() {
-             const alreadyReady = {{ couple.is_complete|yesno:'true,false' }};
-             if (alreadyReady) {
-               this.redirectToRoom();
-               return;
-             }
-             this.checkStatus();
-             setInterval(() => this.checkStatus(), 1000);
-             window.addEventListener('focus', () => this.checkStatus());
-             document.addEventListener('visibilitychange', () => {
-               if (!document.hidden) {
-                 this.checkStatus();
-               }
-             });
-           },
-           async checkStatus() {
-             if (this.autoRedirecting) return;
-             try {
-               const response = await fetch(`/couples/waiting/${this.code}/status/`);
-               const data = await response.json();
-               if (data.ready && data.redirect_url) {
-                 this.redirectToRoom(data.redirect_url);
-               }
-             } catch (e) {
-               console.warn('waiting status check failed', e);
-             }
-           },
-           redirectToRoom(url = null) {
-             this.autoRedirecting = true;
-             window.location.replace(url || '{% url "couples:dashboard" %}');
-           }
-         }">
+         data-waiting-room-code="{{ room_code }}">
   <div class="sync-orbs">
     <span class="sync-orbs__dot sync-orbs__dot--a"></span>
     <span class="sync-orbs__line"></span>
@@ -49,6 +15,50 @@
   <p class="text-4xl font-bold tracking-[0.2em] text-transparent bg-clip-text bg-gradient-to-r from-love-soft via-white to-premium-soft"
      x-text="code"></p>
   <p class="text-xs text-white/35 uppercase tracking-widest">Connexion automatique</p>
-  <p class="text-sm text-white/50" x-show="!autoRedirecting">La room se lance automatiquement dès que votre partenaire a rejoint.</p>
+  <p class="text-sm text-white/50" id="waiting-status-message">La room se lance automatiquement dès que votre partenaire a rejoint.</p>
 </section>
+
+<script>
+  (function () {
+    const section = document.querySelector('[data-waiting-room-code]');
+    if (!section) return;
+
+    const roomCode = section.getAttribute('data-waiting-room-code');
+    const message = document.getElementById('waiting-status-message');
+    let autoRedirecting = false;
+
+    function redirectToRoom(url) {
+      if (autoRedirecting) return;
+      autoRedirecting = true;
+      if (message) {
+        message.textContent = 'Connexion en cours…';
+      }
+      window.location.replace(url || '{% url "couples:dashboard" %}');
+    }
+
+    async function checkStatus() {
+      if (autoRedirecting) return;
+      try {
+        const response = await fetch(`/couples/waiting/${roomCode}/status/`);
+        const data = await response.json();
+        if (data.ready && data.redirect_url) {
+          redirectToRoom(data.redirect_url);
+        }
+      } catch (e) {
+        console.warn('waiting status check failed', e);
+      }
+    }
+
+    checkStatus();
+    const intervalId = window.setInterval(checkStatus, 1000);
+    window.addEventListener('focus', checkStatus);
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        checkStatus();
+      }
+    });
+
+    window.addEventListener('beforeunload', () => window.clearInterval(intervalId));
+  })();
+</script>
 {% endblock %}
