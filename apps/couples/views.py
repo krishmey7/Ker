@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.views import View
 from django.views.generic import TemplateView
 
@@ -91,10 +92,13 @@ def waiting_status(request, code):
         return JsonResponse({"success": False, "ready": False, "error": "Room introuvable"}, status=404)
 
     if couple.contains(request.user):
+        redirect_url = request.build_absolute_uri(
+            reverse("game:session", kwargs={"room_code": couple.room_code})
+        )
         return JsonResponse({
             "success": True,
             "ready": couple.is_complete,
-            "redirect_url": request.build_absolute_uri("/couples/"),
+            "redirect_url": redirect_url,
         })
 
     return JsonResponse({"success": False, "ready": False, "error": "Vous n'êtes pas membre de cette room"}, status=403)

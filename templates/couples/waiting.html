@@ -8,27 +8,33 @@
            init() {
              const alreadyReady = {{ couple.is_complete|yesno:'true,false' }};
              if (alreadyReady) {
-               this.redirectToDashboard();
+               this.redirectToRoom();
                return;
              }
              this.checkStatus();
-             setInterval(() => this.checkStatus(), 2000);
+             setInterval(() => this.checkStatus(), 1000);
+             window.addEventListener('focus', () => this.checkStatus());
+             document.addEventListener('visibilitychange', () => {
+               if (!document.hidden) {
+                 this.checkStatus();
+               }
+             });
            },
            async checkStatus() {
              if (this.autoRedirecting) return;
              try {
                const response = await fetch(`/couples/waiting/${this.code}/status/`);
                const data = await response.json();
-               if (data.ready) {
-                 this.redirectToDashboard();
+               if (data.ready && data.redirect_url) {
+                 this.redirectToRoom(data.redirect_url);
                }
              } catch (e) {
                console.warn('waiting status check failed', e);
              }
            },
-           redirectToDashboard() {
+           redirectToRoom(url = null) {
              this.autoRedirecting = true;
-             window.location.href = '{% url "couples:dashboard" %}';
+             window.location.replace(url || '{% url "couples:dashboard" %}');
            }
          }">
   <div class="sync-orbs">
