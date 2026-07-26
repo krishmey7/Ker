@@ -107,12 +107,16 @@ STORAGES = {
 
 # Database configuration - PostgreSQL in production, SQLite in development
 DATABASES = {
-    "default": dj_database_url.config(
+    'default': dj_database_url.config(
         default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
         conn_max_age=600,
-        conn_health_checks=True,
     )
 }
+
+# Sécurité pour éliminer toute option "timeout" ou "connect_timeout" parasite
+if 'OPTIONS' in DATABASES['default']:
+    DATABASES['default']['OPTIONS'].pop('timeout', None)
+    DATABASES['default']['OPTIONS'].pop('connect_timeout', None)
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
