@@ -462,4 +462,35 @@
   }
 </script>
 
+{# Force load latest assets for onboarding and re-register SW with a version query to bust caches #}
+<script>
+  (function(){
+    const ASSET_VERSION = '2.0';
+
+    try {
+      const pwaSrc = "{% static 'js/pwa.js' %}" + '?v=' + ASSET_VERSION;
+      const s = document.createElement('script');
+      s.src = pwaSrc;
+      s.defer = true;
+      document.body.appendChild(s);
+    } catch (e) {
+      console.warn('Failed to inject versioned pwa.js', e);
+    }
+
+    if ('serviceWorker' in navigator) {
+      const swUrl = "{% static 'js/service-worker.js' %}" + '?v=' + ASSET_VERSION;
+
+      navigator.serviceWorker.getRegistrations().then((regs) => {
+        regs.forEach((r) => {
+          try { r.unregister(); } catch (e) { console.warn('unregister sw failed', e); }
+        });
+      }).finally(() => {
+        navigator.serviceWorker.register(swUrl, { scope: '/' })
+          .then((reg) => console.log('Service worker (re)registered:', swUrl, reg))
+          .catch((err) => console.warn('SW registration failed:', err));
+      });
+    }
+  })();
+</script>
+
 {% endblock %}

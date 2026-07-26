@@ -1,8 +1,9 @@
 /**
  * Service Worker K'er — cache UI (cache-first) + API (network-first).
  */
-const STATIC_CACHE = 'ker-static-v5';
-const PAGES_CACHE = 'ker-pages-v5';
+// Updated cache names to force a new cache lifecycle when version changes
+const STATIC_CACHE = 'ker-v2-static';
+const PAGES_CACHE = 'ker-v2-pages';
 
 const PRECACHE_STATIC = [
   '/static/css/app.css',
@@ -22,30 +23,41 @@ const PRECACHE_STATIC = [
 const PRECACHE_PAGES = ['/offline/'];
 
 self.addEventListener('install', (event) => {
+  // During install we populate the new caches and force the waiting worker
   event.waitUntil(
-    Promise.all([
-      caches.open(STATIC_CACHE).then((cache) =>
-        cache.addAll(PRECACHE_STATIC).catch((err) => {
-          console.warn('[SW] precache static partial', err);
-        })
-      ),
-      caches.open(PAGES_CACHE).then((cache) =>
-        cache.addAll(PRECACHE_PAGES).catch(() => {})
-      ),
-    ])
+    (async () => {
+      try {
+        const staticCache = await caches.open(STATIC_CACHE);
+        await staticCache.addAll(PRECACHE_STATIC);
+      } catch (err) {
+        console.warn('[SW] precache static partial', err);
+      }
+      try {
+        const pagesCache = await caches.open(PAGES_CACHE);
+        await pagesCache.addAll(PRECACHE_PAGES);
+      } catch (err) {
+        // ignore page precache errors
+      }
+    })()
   );
+
+  // Immediately take control so the new cache names are used
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
+  // Delete old caches that don't match the current names
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
+    (async () => {
+      const keys = await caches.keys();
+      await Promise.all(
         keys
           .filter((key) => key !== STATIC_CACHE && key !== PAGES_CACHE)
           .map((key) => caches.delete(key))
-      )
-    ).then(() => self.clients.claim())
+      );
+      // Ensure the service worker takes control immediately
+      await self.clients.claim();
+    })()
   );
 });
 

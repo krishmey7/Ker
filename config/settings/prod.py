@@ -35,3 +35,35 @@ else:
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
+
+# --- Static files / WhiteNoise configuration ---
+# Use compressed manifest storage to serve versioned static files in production.
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Default long cache for static assets (other than SW); we will explicitly
+# prevent aggressive caching for the service worker below.
+WHITENOISE_MAX_AGE = 31536000  # 1 year
+
+
+# Middleware to ensure service-worker is served without aggressive caching.
+# It is appended to MIDDLEWARE so it runs after WhiteNoise has served the file
+# and can override the `Cache-Control` header for the SW URL(s).
+class ServiceWorkerNoCacheMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        try:
+            path = request.path or ''
+            if path.endswith('/service-worker.js') or path.endswith('/static/js/service-worker.js') or 'service-worker.js?v=' in path:
+                response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+                response['Pragma'] = 'no-cache'
+                response['Expires'] = '0'
+        except Exception:
+            # don't break the request pipeline if something unexpected happens
+            pass
+        return response
+
+# Ensure our middleware runs after existing middleware (WhiteNoise is defined in base settings)
+MIDDLEWARE = MIDDLEWARE + ['config.settings.prod.ServiceWorkerNoCacheMiddleware']
