@@ -113,15 +113,17 @@ db_config = dj_database_url.config(
     ssl_require=False
 )
 
-# 2. Suppression de "timeout" et "connect_timeout" S'IL Y EN A partout dans le dict
+# 2. Suppression de toutes les options non supportées par psycopg2
+unsupported_options = ['timeout', 'connect_timeout', 'options']
 for key in list(db_config.keys()):
-    if key in ['timeout', 'connect_timeout']:
+    if key in unsupported_options:
         del db_config[key]
 
-# 3. Nettoyage dans le sous-dictionnaire OPTIONS s'il existe
+# 3. Nettoyage complet du sous-dictionnaire OPTIONS s'il existe
 if 'OPTIONS' in db_config:
-    db_config['OPTIONS'].pop('timeout', None)
-    db_config['OPTIONS'].pop('connect_timeout', None)
+    for opt_key in list(db_config['OPTIONS'].keys()):
+        if opt_key in ['timeout', 'connect_timeout', 'sslmode']:
+            db_config['OPTIONS'].pop(opt_key, None)
 
 DATABASES = {
     'default': db_config
