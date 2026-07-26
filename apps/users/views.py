@@ -59,6 +59,8 @@ class OnboardingView(View):
                 return self.handle_user_profile(request, data)
             elif step == 'couple_profile':
                 return self.handle_couple_profile(request, data)
+            elif step == 'join_room_check':
+                return self.handle_join_room_check(request, data)
             elif step == 'join_room':
                 return self.handle_join_room(request, data)
             else:
@@ -109,6 +111,30 @@ class OnboardingView(View):
                 'redirect_url': reverse_lazy('couples:waiting', kwargs={'code': couple.room_code})
             })
         except ValueError as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
+    def handle_join_room_check(self, request, data):
+        """Retourne un résumé de la room avant la confirmation du join."""
+        if not request.user.is_authenticated:
+            return JsonResponse({'success': False, 'error': 'Utilisateur non connecté'}, status=401)
+
+        room_code = data.get('room_code', '').strip().upper()
+        if not room_code:
+            return JsonResponse({'success': False, 'error': 'Code d\'invitation requis'}, status=400)
+
+        try:
+            couple = CoupleService.get_couple_by_code(room_code)
+            if not couple:
+                return JsonResponse({'success': False, 'error': 'Code invalide.'}, status=400)
+
+            summary = {
+                'partner_name': couple.user1.display_name if couple.user1_id and couple.user1_id != request.user.id else (couple.user2.display_name if couple.user2_id else 'Votre partenaire'),
+                'relationship_duration': couple.get_relationship_duration_display(),
+                'residence_continent': couple.get_residence_continent_display(),
+                'is_long_distance': couple.is_long_distance,
+            }
+            return JsonResponse({'success': True, 'summary': summary})
+        except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=400)
 
     def handle_join_room(self, request, data):

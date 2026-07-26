@@ -62,6 +62,12 @@ class CoupleService:
         return couple
 
     @staticmethod
+    def get_couple_by_code(room_code: str) -> Couple | None:
+        """Retourne un couple par code de room."""
+        code = room_code.strip().upper()
+        return Couple.objects.filter(room_code=code).select_related("user1", "user2").first()
+
+    @staticmethod
     def get_active_couple(user: User) -> Couple | None:
         """Couple actif de l'utilisateur."""
         return (
