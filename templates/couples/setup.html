@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Votre couple — K'er{% endblock %}
+{% block content %}
+<section class="flex-1 flex flex-col justify-center gap-6 max-w-md mx-auto">
+  <div class="text-center">
+    <h1 class="text-2xl font-semibold">Liez-vous à deux</h1>
+    <p class="text-white/60 mt-2 text-sm">Une room privée, rien que pour vous.</p>
+  </div>
+  
+  <div class="space-y-3">
+    <button @click="showCreateForm = true" class="btn-primary w-full text-center block">
+      ✨ Créer une room
+    </button>
+    
+    <div class="relative py-3">
+      <div class="absolute inset-0 flex items-center">
+        <div class="w-full border-t border-white/10"></div>
+      </div>
+      <div class="relative flex justify-center text-sm">
+        <span class="px-2 bg-surface text-white/40">ou</span>
+      </div>
+    </div>
+    
+    <a href="{% url 'couples:join' %}" class="btn-ghost w-full text-center block">
+      Rejoindre avec un code
+    </a>
+  </div>
+  
+  <!-- Formulaire de création avec profil -->
+  <div x-show="showCreateForm" x-transition class="mt-6 space-y-4 p-4 bg-white/5 rounded-lg border border-white/10">
+    <h2 class="text-lg font-semibold">Profil de votre couple</h2>
+    
+    <form method="post" action="{% url 'couples:create' %}" class="space-y-4">
+      {% csrf_token %}
+      
+      <div>
+        <label class="block text-sm text-white/70 mb-2">Durée de votre relation</label>
+        <select name="relationship_duration" class="input-field w-full" required>
+          <option value="less_than_1_year">Moins d'un an</option>
+          <option value="1_to_3_years">1 à 3 ans</option>
+          <option value="more_than_3_years">Plus de 3 ans</option>
+          <option value="engaged">Fiancés</option>
+        </select>
+      </div>
+      
+      <div>
+        <label class="block text-sm text-white/70 mb-2">Continent de résidence</label>
+        <select name="residence_continent" class="input-field w-full" required>
+          <option value="africa">Afrique</option>
+          <option value="europe">Europe</option>
+          <option value="north_america">Amérique du Nord</option>
+          <option value="south_america">Amérique du Sud</option>
+          <option value="asia">Asie</option>
+          <option value="oceania">Océanie</option>
+        </select>
+      </div>
+      
+      <div class="flex items-center gap-3">
+        <input type="checkbox" name="is_long_distance" id="long_distance" class="w-5 h-5 rounded">
+        <label for="long_distance" class="text-sm text-white/70">Relation à distance</label>
+      </div>
+      
+      <div class="flex gap-3">
+        <button type="submit" class="btn-primary flex-1">Créer</button>
+        <button type="button" @click="showCreateForm = false" class="btn-ghost flex-1">Annuler</button>
+      </div>
+    </form>
+  </div>
+</section>
+
+<script>
+  document.addEventListener('alpine:init', () => {
+    Alpine.data('setup', () => ({
+      showCreateForm: false
+    }));
+  });
+</script>
+{% endblock %}

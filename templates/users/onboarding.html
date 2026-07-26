@@ -1,0 +1,465 @@
+{% extends "base.html" %}
+{% block title %}Bienvenue — K'er{% endblock %}
+{% block content %}
+<form @submit.prevent class="min-h-screen flex flex-col justify-between p-6" 
+     x-data="onboardingWizard()" 
+     x-init="initWizard()">
+    
+    <!-- CSRF Token for AJAX requests -->
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+    
+    <!-- Header: Progression fine style Google -->
+    <div>
+        <div class="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
+            <div class="bg-love h-full transition-all duration-500 ease-out" :style="`width: ${(step/6)*100}%`"></div>
+        </div>
+        <button x-show="step > 1" @click="goBack" class="mt-4 text-white/50 hover:text-white flex items-center gap-1 text-sm transition-colors">
+            ← Retour
+        </button>
+    </div>
+
+    <!-- Contenu Central (Change selon l'étape) -->
+    <div class="my-auto max-w-md w-full mx-auto">
+        
+        <!-- ÉTAPE 1: PRÉNOM -->
+        <div x-show="step === 1" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0">
+            <h1 class="text-2xl font-bold mb-2">Comment t'appelle ton/ta partenaire ?</h1>
+            <p class="text-white/60 mb-6 text-sm">Ce prénom sera affiché dans l'application.</p>
+            <input type="text" 
+                   x-model="formData.display_name" 
+                   placeholder="Ton prénom ou surnom" 
+                   class="input-field w-full" 
+                   required 
+                   autofocus>
+        </div>
+
+        <!-- ÉTAPE 2: TÉLÉPHONE -->
+        <div x-show="step === 2" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0">
+            <h1 class="text-2xl font-bold mb-2">Ton numéro de téléphone</h1>
+            <p class="text-white/60 mb-6 text-sm">Il servira d'identifiant pour te connecter.</p>
+            <input type="tel" 
+                   x-model="formData.phone_number" 
+                   placeholder="0842769512" 
+                   class="input-field w-full" 
+                   required>
+        </div>
+
+        <!-- ÉTAPE 3: MOT DE PASSE -->
+        <div x-show="step === 3" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-4">
+            <h1 class="text-2xl font-bold mb-2">Crée ton mot de passe</h1>
+            <p class="text-white/60 mb-6 text-sm">Minimum 8 caractères pour sécuriser ton compte.</p>
+            <input type="password" 
+                   x-model="formData.password" 
+                   placeholder="Mot de passe" 
+                   class="input-field w-full" 
+                   required>
+            <input type="password" 
+                   x-model="formData.password_confirm" 
+                   placeholder="Confirme ton mot de passe" 
+                   class="input-field w-full" 
+                   required>
+            <div x-show="error" class="text-red-400 text-sm" x-text="error"></div>
+        </div>
+
+        <!-- ÉTAPE 4: CRÉER OU REJOINDRE -->
+        <div x-show="step === 4" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0">
+            <h1 class="text-2xl font-bold mb-2">Comment souhaitez-vous commencer ?</h1>
+            <p class="text-white/60 mb-6 text-sm">Choisissez la façon de créer votre espace K'er.</p>
+            <div class="space-y-3">
+                <button @click="selectAction('create')" 
+                        class="choice-card w-full text-left bg-white/5 hover:bg-love/20 border border-white/10 hover:border-love/40 p-5 rounded-xl transition-all">
+                    <div class="font-bold text-lg mb-1">Créer un nouveau couple</div>
+                    <div class="text-white/60 text-sm">Je suis le/la premier(ère) à créer notre espace K'er.</div>
+                </button>
+                <button @click="selectAction('join')" 
+                        class="choice-card w-full text-left bg-white/5 hover:bg-love/20 border border-white/10 hover:border-love/40 p-5 rounded-xl transition-all">
+                    <div class="font-bold text-lg mb-1">Rejoindre mon/ma partenaire</div>
+                    <div class="text-white/60 text-sm">Mon/ma partenaire a déjà créé notre espace et m'a donné un code.</div>
+                </button>
+            </div>
+        </div>
+
+        <!-- ÉTAPE 5: DURÉE RELATION (CREATE FLOW) -->
+        <div x-show="step === 5 && formData.action_type === 'create'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0">
+            <h1 class="text-2xl font-bold mb-6">Depuis combien de temps êtes-vous ensemble ?</h1>
+            <div class="space-y-3">
+                <template x-for="option in durationOptions" :key="option.value">
+                    <button @click="selectDuration(option.value)" 
+                            class="choice-card w-full text-left bg-white/5 hover:bg-love/20 border border-white/10 hover:border-love/40 p-4 rounded-xl font-medium transition-all">
+                        <span x-text="option.label"></span>
+                    </button>
+                </template>
+            </div>
+        </div>
+
+        <!-- ÉTAPE 5: CODE D'INVITATION (JOIN FLOW) -->
+        <div x-show="step === 5 && formData.action_type === 'join'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0">
+            <h1 class="text-2xl font-bold mb-2">Entre le code d'invitation</h1>
+            <p class="text-white/60 mb-6 text-sm">Saisis le code à 6 caractères partagé par ton/ta partenaire.</p>
+            <input type="text" 
+                   x-model="formData.room_code" 
+                   placeholder="ABC123" 
+                   class="input-field w-full uppercase text-center text-lg tracking-widest" 
+                   maxlength="6"
+                   required>
+            <div x-show="error" class="text-red-400 text-sm mt-2" x-text="error"></div>
+        </div>
+
+        <!-- ÉTAPE 6: CONTINENT (CREATE FLOW) -->
+        <div x-show="step === 6 && formData.action_type === 'create'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0">
+            <h1 class="text-2xl font-bold mb-6">Sur quel continent résidez-vous ?</h1>
+            <div class="space-y-3">
+                <template x-for="option in continentOptions" :key="option.value">
+                    <button @click="selectContinent(option.value)" 
+                            class="choice-card w-full text-left bg-white/5 hover:bg-love/20 border border-white/10 hover:border-love/40 p-4 rounded-xl font-medium transition-all">
+                        <span x-text="option.label"></span>
+                    </button>
+                </template>
+            </div>
+        </div>
+
+        <!-- ÉTAPE 7: DISTANCE (CREATE FLOW) -->
+        <div x-show="step === 7 && formData.action_type === 'create'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0">
+            <h1 class="text-2xl font-bold mb-6">Êtes-vous dans une relation à distance ?</h1>
+            <div class="space-y-3">
+                <button @click="selectDistance(true)" 
+                        class="choice-card w-full text-left bg-white/5 hover:bg-love/20 border border-white/10 hover:border-love/40 p-4 rounded-xl font-medium transition-all">
+                    Oui
+                </button>
+                <button @click="selectDistance(false)" 
+                        class="choice-card w-full text-left bg-white/5 hover:bg-love/20 border border-white/10 hover:border-love/40 p-4 rounded-xl font-medium transition-all">
+                    Non
+                </button>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div x-show="isLoading" class="flex items-center justify-center py-8">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-love"></div>
+        </div>
+
+    </div>
+
+    <!-- Footer: Bouton Continuer (pour les étapes de saisie texte) -->
+    <div x-show="[1, 2, 3].includes(step) || (step === 5 && formData.action_type === 'join') && !isLoading">
+        <button @click="nextStep" class="w-full btn-primary">
+            <span x-text="step === 5 && formData.action_type === 'join' ? 'Valider' : 'Suivant'"></span>
+        </button>
+    </div>
+
+</form>
+
+<style>
+  .input-field {
+    width: 100%;
+    padding: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+    font-size: 1rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .input-field::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  .input-field:focus {
+    outline: none;
+    border-color: #ff4d8f;
+    box-shadow: 0 0 0 3px rgba(255, 77, 143, 0.2);
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .choice-card {
+    transition: all 0.2s ease;
+  }
+
+  .choice-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 77, 143, 0.2);
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #ff4d8f 0%, #c9184a 100%);
+    color: white;
+    padding: 1rem;
+    border-radius: 1rem;
+    font-weight: 600;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 77, 143, 0.4);
+  }
+</style>
+
+<script>
+  // Helper function to get CSRF token strictly from cookie (Django's reference value)
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  function getCsrfToken() {
+    const token = getCookie('csrftoken');
+    console.log('CSRF token from cookie:', token);
+    return token;
+  }
+
+  function onboardingWizard() {
+    return {
+      step: 1,
+      totalSteps: 7,
+      isLoading: false,
+      error: '',
+      formData: {
+        display_name: '',
+        phone_number: '',
+        password: '',
+        password_confirm: '',
+        action_type: '', // 'create' or 'join'
+        room_code: '',
+        relationship_duration: '',
+        residence_continent: '',
+        is_long_distance: false
+      },
+      durationOptions: [
+        { value: 'less_than_1_year', label: 'Moins d\'un an' },
+        { value: '1_to_3_years', label: '1 à 3 ans' },
+        { value: 'more_than_3_years', label: 'Plus de 3 ans' },
+        { value: 'engaged', label: 'Fiancés' }
+      ],
+      continentOptions: [
+        { value: 'africa', label: 'Afrique' },
+        { value: 'europe', label: 'Europe' },
+        { value: 'north_america', label: 'Amérique du Nord' },
+        { value: 'south_america', label: 'Amérique du Sud' },
+        { value: 'asia', label: 'Asie' },
+        { value: 'oceania', label: 'Océanie' }
+      ],
+      
+      initWizard() {
+        // Start at step 1 immediately
+      },
+      
+      async nextStep() {
+        if (this.step === 1) {
+          if (!this.formData.display_name.trim()) return;
+          this.step = 2;
+        } else if (this.step === 2) {
+          if (!this.formData.phone_number.trim()) return;
+          this.step = 3;
+        } else if (this.step === 3) {
+          await this.submitUserProfile();
+        } else if (this.step === 5 && this.formData.action_type === 'join') {
+          await this.submitJoinRoom();
+        }
+      },
+
+      selectAction(action) {
+        this.formData.action_type = action;
+        this.step = 5;
+      },
+      
+      async submitUserProfile() {
+        if (!this.formData.password || !this.formData.password_confirm) return;
+        if (this.formData.password !== this.formData.password_confirm) {
+          this.error = 'Les mots de passe ne correspondent pas';
+          return;
+        }
+        if (this.formData.password.length < 8) {
+          this.error = 'Le mot de passe doit contenir au moins 8 caractères';
+          return;
+        }
+        
+        this.isLoading = true;
+        this.error = '';
+        
+        // Get CSRF token directly from cookie
+        const csrfToken = getCookie('csrftoken');
+        
+        try {
+          const response = await fetch('{% url "users:onboarding_submit" %}', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': csrfToken,
+              'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({
+              step: 'user_profile',
+              display_name: this.formData.display_name,
+              phone_number: this.formData.phone_number,
+              password: this.formData.password
+            })
+          });
+          
+          console.log('Response status:', response.status);
+          console.log('Response ok:', response.ok);
+          
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Error response:', errorText);
+            this.error = `Erreur ${response.status}: ${errorText}`;
+            this.isLoading = false;
+            return;
+          }
+          
+          const data = await response.json();
+          console.log('Response data:', data);
+          
+          if (data.success) {
+            this.isLoading = false;
+            this.step = 4;
+          } else {
+            this.error = data.error || 'Erreur lors de la création du compte';
+            this.isLoading = false;
+          }
+        } catch (e) {
+          console.error('Fetch error:', e);
+          this.error = 'Erreur de connexion: ' + e.message;
+          this.isLoading = false;
+        }
+      },
+      
+      selectDuration(value) {
+        this.formData.relationship_duration = value;
+        this.step = 6;
+      },
+
+      async submitJoinRoom() {
+        if (!this.formData.room_code.trim()) {
+          this.error = 'Veuillez entrer le code d\'invitation';
+          return;
+        }
+
+        this.isLoading = true;
+        this.error = '';
+
+        const csrfToken = getCookie('csrftoken');
+
+        try {
+          const response = await fetch('{% url "users:onboarding_submit" %}', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': csrfToken,
+              'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({
+              step: 'join_room',
+              room_code: this.formData.room_code
+            })
+          });
+
+          console.log('Response status:', response.status);
+          console.log('Response ok:', response.ok);
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Error response:', errorText);
+            this.error = `Erreur ${response.status}: ${errorText}`;
+            this.isLoading = false;
+            return;
+          }
+
+          const data = await response.json();
+          console.log('Response data:', data);
+
+          if (data.success) {
+            window.location.href = data.redirect_url;
+          } else {
+            this.error = data.error || 'Code d\'invitation invalide';
+            this.isLoading = false;
+          }
+        } catch (e) {
+          console.error('Fetch error:', e);
+          this.error = 'Erreur de connexion: ' + e.message;
+          this.isLoading = false;
+        }
+      },
+
+      selectContinent(value) {
+        this.formData.residence_continent = value;
+        this.step = 7;
+      },
+      
+      async selectDistance(value) {
+        this.formData.is_long_distance = value;
+        this.isLoading = true;
+        
+        // Get CSRF token directly from cookie
+        const csrfToken = getCookie('csrftoken');
+        
+        try {
+          const response = await fetch('{% url "users:onboarding_submit" %}', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': csrfToken,
+              'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({
+              step: 'couple_profile',
+              relationship_duration: this.formData.relationship_duration,
+              residence_continent: this.formData.residence_continent,
+              is_long_distance: this.formData.is_long_distance
+            })
+          });
+          
+          console.log('Response status:', response.status);
+          console.log('Response ok:', response.ok);
+          
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Error response:', errorText);
+            this.error = `Erreur ${response.status}: ${errorText}`;
+            this.isLoading = false;
+            this.step = 4;
+            return;
+          }
+          
+          const data = await response.json();
+          console.log('Response data:', data);
+          
+          if (data.success) {
+            window.location.href = data.redirect_url;
+          } else {
+            this.error = data.error || 'Erreur lors de la création de la room';
+            this.isLoading = false;
+            this.step = 4;
+          }
+        } catch (e) {
+          console.error('Fetch error:', e);
+          this.error = 'Erreur de connexion: ' + e.message;
+          this.isLoading = false;
+          this.step = 4;
+        }
+      },
+      
+      goBack() {
+        if (this.step > 1) {
+          this.step--;
+        }
+      }
+    };
+  }
+</script>
+
+{% endblock %}

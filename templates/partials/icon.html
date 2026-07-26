@@ -1,0 +1,78 @@
+{% comment %}Icône SVG moderne — usage: {% include "partials/icon.html" with name="heart" class="w-8 h-8" %}{% endcomment %}
+{% with cls=class|default:"icon" %}
+{% if name == "heart" %}
+<svg class="{{ cls }}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <path class="icon-heart__glow" d="M12 21s-6.5-4.35-9-7.5C1.5 11 2 6.5 5.5 5 8 3.8 10 5 12 7c2-2 4-3.2 6.5-2C22 6.5 22.5 11 21 13.5 18.5 16.65 12 21 12 21z" fill="url(#grad-heart)" stroke="url(#grad-heart-stroke)" stroke-width="1.2"/>
+  <defs>
+    <linearGradient id="grad-heart" x1="4" y1="4" x2="20" y2="20"><stop stop-color="#ff6b9d"/><stop offset="1" stop-color="#c9184a"/></linearGradient>
+    <linearGradient id="grad-heart-stroke" x1="4" y1="4" x2="20" y2="20"><stop stop-color="#ffb3c6"/><stop offset="1" stop-color="#ff4d6d"/></linearGradient>
+  </defs>
+</svg>
+{% elif name == "link" %}
+<svg class="{{ cls }}" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+  <circle cx="8" cy="12" r="3" stroke="url(#grad-link)" stroke-width="1.5"/>
+  <circle cx="16" cy="12" r="3" stroke="url(#grad-link)" stroke-width="1.5"/>
+  <path d="M11 12h2" stroke="url(#grad-link)" stroke-width="1.5" stroke-linecap="round"/>
+  <defs><linearGradient id="grad-link" x1="4" y1="8" x2="20" y2="16"><stop stop-color="#ff6b9d"/><stop offset="1" stop-color="#9d4edd"/></linearGradient></defs>
+</svg>
+{% elif name == "flame" %}
+<svg class="{{ cls }}" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+  <path d="M12 22c4-3 6-6.5 6-10a6 6 0 00-6-6c-1.5 2.5-3 4-3 6 0-2-1.5-4-3-6a6 6 0 00-6 6c0 3.5 2 7 6 10z" fill="url(#grad-flame)"/>
+  <path d="M12 18c1.5-1.5 2.5-3 2.5-4.5S13 11 12 9.5 9.5 11 9.5 13.5 10.5 16.5 12 18z" fill="#fff5" opacity=".6"/>
+  <defs><linearGradient id="grad-flame" x1="6" y1="6" x2="18" y2="22"><stop stop-color="#ff9e6d"/><stop offset="1" stop-color="#ff4d6d"/></linearGradient></defs>
+</svg>
+{% elif name == "spark" %}
+<svg class="{{ cls }}" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+  <path d="M12 2l1.5 6.5L20 12l-6.5 1.5L12 20l-1.5-6.5L4 12l6.5-1.5L12 2z" fill="url(#grad-spark)"/>
+  <path d="M18 4l.8 2.2L21 7l-2.2.8L18 10l-.8-2.2L15 7l2.2-.8L18 4z" fill="#e0aaff" opacity=".9"/>
+  <defs><linearGradient id="grad-spark" x1="4" y1="2" x2="20" y2="20"><stop stop-color="#e0aaff"/><stop offset="1" stop-color="#ff6b9d"/></linearGradient></defs>
+</svg>
+{% elif name == "wave" %}
+<svg class="{{ cls }}" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+  <path d="M4 14c2 0 2-4 4-4s2 4 4 4 2-4 4-4 2 4 4 4" stroke="url(#grad-wave)" stroke-width="1.8" stroke-linecap="round"/>
+  <circle cx="8" cy="9" r="1" fill="#ff6b9d"/><circle cx="16" cy="9" r="1" fill="#ff6b9d"/>
+  <defs><linearGradient id="grad-wave" x1="4" y1="10" x2="20" y2="14"><stop stop-color="#ffb3c6"/><stop offset="1" stop-color="#9d4edd"/></linearGradient></defs>
+</svg>
+{% elif name == "blush" %}
+<svg class="{{ cls }}" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+  <circle cx="12" cy="12" r="9" stroke="url(#grad-blush)" stroke-width="1.2" opacity=".5"/>
+  <ellipse cx="8.5" cy="13" rx="2" ry="1.2" fill="#ff6b9d" opacity=".45"/>
+  <ellipse cx="15.5" cy="13" rx="2" ry="1.2" fill="#ff6b9d" opacity=".45"/>
+  <path d="M9 10.5c.8-.8 1.7-1.2 3-1.2s2.2.4 3 1.2" stroke="#fff" stroke-width="1.2" stroke-linecap="round" opacity=".8"/>
+  <defs><linearGradient id="grad-blush" x1="3" y1="3" x2="21" y2="21"><stop stop-color="#ff6b9d"/><stop offset="1" stop-color="#c77dff"/></linearGradient></defs>
+</svg>
+{% elif name == "streak" %}
+<svg class="{{ cls }}" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+  <path d="M12 2L14 9h7l-5.5 4.5L18 22l-6-4.5L6 22l2.5-8.5L3 9h7L12 2z" fill="url(#grad-streak)"/>
+  <defs><linearGradient id="grad-streak" x1="3" y1="2" x2="21" y2="22"><stop stop-color="#ff9e6d"/><stop offset="1" stop-color="#ff4d6d"/></linearGradient></defs>
+</svg>
+{% elif name == "compat" %}
+<svg class="{{ cls }}" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+  <path d="M12 3v18M3 12h18" stroke="url(#grad-compat)" stroke-width="0" />
+  <circle cx="12" cy="12" r="8" stroke="url(#grad-compat)" stroke-width="1.5"/>
+  <path d="M8 12c0-2.2 1.8-4 4-4s4 1.8 4 4-1.8 4-4 4" stroke="url(#grad-compat)" stroke-width="1.5" stroke-linecap="round"/>
+  <circle cx="12" cy="12" r="2.5" fill="url(#grad-compat)"/>
+  <defs><linearGradient id="grad-compat" x1="4" y1="4" x2="20" y2="20"><stop stop-color="#c77dff"/><stop offset="1" stop-color="#ff6b9d"/></linearGradient></defs>
+</svg>
+{% elif name == "level" %}
+<svg class="{{ cls }}" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+  <path d="M4 18V6l8-3 8 3v12l-8 3-8-3z" stroke="url(#grad-level)" stroke-width="1.5" fill="url(#grad-level-fill)" fill-opacity=".15"/>
+  <path d="M12 8v8M8 12h8" stroke="url(#grad-level)" stroke-width="1.5" stroke-linecap="round"/>
+  <defs>
+    <linearGradient id="grad-level" x1="4" y1="3" x2="20" y2="21"><stop stop-color="#e0aaff"/><stop offset="1" stop-color="#ff6b9d"/></linearGradient>
+    <linearGradient id="grad-level-fill" x1="4" y1="3" x2="20" y2="21"><stop stop-color="#9d4edd"/><stop offset="1" stop-color="#ff4d6d"/></linearGradient>
+  </defs>
+</svg>
+{% elif name == "premium" %}
+<svg class="{{ cls }}" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+  <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7L12 17.8 5.7 21l2.3-7-6-4.6h7.6L12 2z" fill="url(#grad-prem)"/>
+  <defs><linearGradient id="grad-prem" x1="4" y1="2" x2="20" y2="22"><stop stop-color="#e0aaff"/><stop offset=".5" stop-color="#c77dff"/><stop offset="1" stop-color="#ff6b9d"/></linearGradient></defs>
+</svg>
+{% elif name == "play" %}
+<svg class="{{ cls }}" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+  <circle cx="12" cy="12" r="10" stroke="url(#grad-play)" stroke-width="1.5"/>
+  <path d="M10 8.5l6 3.5-6 3.5V8.5z" fill="url(#grad-play)"/>
+  <defs><linearGradient id="grad-play" x1="4" y1="4" x2="20" y2="20"><stop stop-color="#ff6b9d"/><stop offset="1" stop-color="#c77dff"/></linearGradient></defs>
+</svg>
+{% endif %}
+{% endwith %}

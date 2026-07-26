@@ -1,0 +1,32 @@
+# Core
+Django>=5.0,<6.0
+django-environ>=0.11.2
+
+# Real-time
+channels>=4.0.0
+channels-redis>=4.2.0
+daphne>=4.1.0
+
+# Async tasks
+celery>=5.4.0
+redis>=5.0.0
+
+# Auth & API helpers
+django-htmx>=1.17.0
+
+# Production DB
+psycopg[binary]>=3.1.0
+dj-database-url>=2.1.0
+
+# Production server
+gunicorn>=21.2.0
+
+# Static files
+whitenoise>=6.6.0
+
+# IA — Groq (prioritaire) + Gemini optionnel
+groq>=0.13.0
+google-genai>=1.0.0
+
+# Assets PWA (génération icônes depuis logo.png)
+Pillow>=10.0.0

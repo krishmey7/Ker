@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Offres — K'er{% endblock %}
+{% block content %}
+<section class="flex-1 flex flex-col gap-6 pt-4 animate-fade-in pb-6">
+
+  <header class="text-center">
+    <p class="text-sm text-premium-soft uppercase tracking-widest">Continuez ensemble</p>
+    <h1 class="font-display text-3xl font-semibold mt-2">Choisissez votre moment</h1>
+    <p class="text-white/50 text-sm mt-2">Un seul achat profite aux deux partenaires</p>
+  </header>
+
+  {% if access.badge %}
+  <p class="text-center text-sm text-love-soft bg-love/10 border border-love/20 rounded-xl py-2 px-4">
+    Plan actuel : {{ access.badge }}
+  </p>
+  {% endif %}
+
+  {% if kiba_configured %}
+  <div class="rounded-2xl border border-love/25 bg-love/5 p-4 space-y-3">
+    <p class="text-sm text-white/70 text-center">Paiement Mobile Money (USSD) — RDC via KibaWallet</p>
+    <label class="block text-xs text-white/50" for="kiba-mobile">Numéro (+243…)</label>
+    <input id="kiba-mobile" type="tel" inputmode="tel" placeholder="+243900000000"
+           class="input-field w-full" autocomplete="tel">
+    <p id="kiba-status" class="text-sm text-center text-love-soft hidden"></p>
+  </div>
+  {% csrf_token %}
+  {% endif %}
+
+  <article class="rounded-2xl border border-premium/30 bg-gradient-to-br from-premium/15 to-love/5 p-6 space-y-4">
+    <div class="flex justify-between items-start">
+      <div>
+        <span class="category-pill">Premium hebdo</span>
+        <h2 class="font-display text-2xl font-semibold mt-2">Illimité ❤️</h2>
+      </div>
+      <p class="text-right">
+        <span class="text-3xl font-bold">{{ weekly_price }}</span>
+        <span class="text-white/50 text-sm">{{ currency }} / semaine</span>
+      </p>
+    </div>
+    <ul class="text-sm text-white/70 space-y-2 text-left">
+      <li class="feature-check">Questions illimitées pour le couple</li>
+      <li class="feature-check">Sans publicité</li>
+      <li class="feature-check">Toutes les catégories de questions</li>
+    </ul>
+    {% if kiba_configured %}
+    <button type="button" class="btn-primary w-full py-4"
+            onclick="kerKibaPay('weekly', '{{ weekly_price }}')">
+      Payer par Mobile Money — {{ weekly_price }} {{ currency }}
+    </button>
+    {% else %}
+    <button type="button"
+            class="btn-primary w-full py-4"
+            hx-post="{% url 'payments:activate_weekly' %}"
+            hx-swap="none"
+            hx-on::after-request="if(event.detail.successful){ const d=JSON.parse(event.detail.xhr.response); alert(d.message||'Activé'); location.href='{% url 'game:play' %}'; }">
+      S'abonner — {{ weekly_price }}$ / semaine
+    </button>
+    {% endif %}
+  </article>
+
+  <article class="rounded-2xl border border-white/10 bg-white/5 p-6 space-y-4">
+    <div class="flex justify-between items-start">
+      <div>
+        <span class="category-pill">Pass weekend</span>
+        <h2 class="font-display text-xl font-semibold mt-2">Weekend Unlimited 🔥</h2>
+      </div>
+      <p class="text-right">
+        <span class="text-2xl font-bold">{{ weekend_price }}</span>
+        <span class="text-white/50 text-sm">{{ currency }}</span>
+      </p>
+    </div>
+    <ul class="text-sm text-white/65 space-y-2 text-left">
+      <li class="feature-check">Illimité samedi & dimanche</li>
+      <li class="feature-check">Activation auto selon le calendrier</li>
+      {% if is_weekend_window %}
+      <li class="text-love-soft text-xs">🔥 Le weekend est en cours — profitez-en !</li>
+      {% else %}
+      <li class="text-white/40 text-xs">Hors weekend : quota gratuit jusqu'à samedi</li>
+      {% endif %}
+    </ul>
+    {% if kiba_configured %}
+    <button type="button" class="btn-ghost w-full py-4 border border-white/15"
+            onclick="kerKibaPay('weekend', '{{ weekend_price }}')">
+      Pass weekend — {{ weekend_price }} {{ currency }} (Mobile Money)
+    </button>
+    {% else %}
+    <button type="button"
+            class="btn-ghost w-full py-4 border border-white/15"
+            hx-post="{% url 'payments:activate_weekend' %}"
+            hx-swap="none"
+            hx-on::after-request="if(event.detail.successful){ const d=JSON.parse(event.detail.xhr.response); alert(d.message||'Activé'); location.href='{% url 'game:play' %}'; }">
+      Pass weekend — {{ weekend_price }}$
+    </button>
+    {% endif %}
+  </article>
+
+  {% if usage_summary.show_ads %}
+  <div class="rounded-2xl border border-white/8 p-4 text-center space-y-3">
+    <p class="text-sm text-white/55">Ou regardez une pub ensemble</p>
+    <a href="{% url 'game:play' %}" class="btn-ghost w-full py-3 text-sm">
+      🎥 Regarder une pub pour continuer
+    </a>
+  </div>
+  {% endif %}
+
+  <a href="{% url 'couples:dashboard' %}" class="btn-ghost text-center text-sm">Retour</a>
+</section>
+
+{% if kiba_configured %}
+<script src="{% static 'js/kiba-payment.js' %}"></script>
+{% endif %}
+{% endblock %}

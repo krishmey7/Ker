@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}Inscription — K'er{% endblock %}
+{% block content %}
+<section class="flex-1 flex flex-col justify-center gap-4 max-w-md mx-auto">
+  <h1 class="text-2xl font-semibold">Créer votre espace</h1>
+  
+  <form method="post" id="signup-form" class="space-y-3">
+    {% csrf_token %}
+    
+    <!-- Identifiant -->
+    <div class="form-group">
+      <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-white/80 mb-1">
+        Identifiant
+      </label>
+      {{ form.username }}
+      {% if form.username.errors %}
+        <ul class="text-red-400 text-xs mt-1 space-y-0">
+          {% for error in form.username.errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+
+    <!-- Prénom/Pseudo -->
+    <div class="form-group">
+      <label for="{{ form.display_name.id_for_label }}" class="block text-sm font-medium text-white/80 mb-1">
+        {{ form.display_name.label }}
+      </label>
+      {{ form.display_name }}
+      {% if form.display_name.errors %}
+        <ul class="text-red-400 text-xs mt-1">
+          {% for error in form.display_name.errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+
+    <!-- Mot de passe 1 -->
+    <div class="form-group">
+      <label for="{{ form.password1.id_for_label }}" class="block text-sm font-medium text-white/80 mb-1 flex items-center justify-between">
+        <span>Mot de passe</span>
+        <button type="button" class="text-xs text-love-soft hover:text-love transition-colors" onclick="toggleHelp('pwd-help')">
+          Règles
+        </button>
+      </label>
+      {{ form.password1 }}
+      {% if form.password1.errors %}
+        <ul class="text-red-400 text-xs mt-1 space-y-0">
+          {% for error in form.password1.errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+      <!-- Consignes compactes (masquées par défaut) -->
+      <div id="pwd-help" class="hidden mt-2 p-2 bg-love/10 border border-love/20 rounded text-xs text-love-soft space-y-1">
+        <p>{{ form.password1.help_text|safe }}</p>
+      </div>
+    </div>
+
+    <!-- Mot de passe 2 -->
+    <div class="form-group">
+      <label for="{{ form.password2.id_for_label }}" class="block text-sm font-medium text-white/80 mb-1">
+        Confirmer le mot de passe
+      </label>
+      {{ form.password2 }}
+      {% if form.password2.errors %}
+        <ul class="text-red-400 text-xs mt-1 space-y-0">
+          {% for error in form.password2.errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+
+    <button type="submit" class="btn-primary w-full">Créer mon compte</button>
+  </form>
+
+  <p class="text-center text-sm text-white/60">
+    Déjà inscrit? <a href="{% url 'users:login' %}" class="text-love-soft hover:text-love font-medium">Se connecter</a>
+  </p>
+</section>
+
+<style>
+  #signup-form input[type="text"],
+  #signup-form input[type="password"],
+  #signup-form input[type="email"] {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid rgba(255, 107, 157, 0.2);
+    border-radius: 0.875rem;
+    background: rgba(255, 255, 255, 0.06);
+    color: white;
+    font-size: 1rem;
+    font-family: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  #signup-form input[type="text"]::placeholder,
+  #signup-form input[type="password"]::placeholder,
+  #signup-form input[type="email"]::placeholder {
+    color: rgba(255, 255, 255, 0.35);
+  }
+  
+  #signup-form input[type="text"]:focus,
+  #signup-form input[type="password"]:focus,
+  #signup-form input[type="email"]:focus {
+    outline: none;
+    border-color: rgba(255, 107, 157, 0.5);
+    box-shadow: 0 0 0 3px rgba(255, 77, 143, 0.2);
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+  }
+</style>
+
+<script>
+  function toggleHelp(id) {
+    const el = document.getElementById(id);
+    el.classList.toggle('hidden');
+  }
+</script>
+{% endblock %}

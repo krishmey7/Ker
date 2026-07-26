@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Accueil — K'er{% endblock %}
+{% block content %}
+<section class="flex-1 flex flex-col gap-6 pt-6 animate-fade-in">
+  <header>
+    <p class="text-white/45 text-sm tracking-wide uppercase">Votre espace</p>
+    <h1 class="font-display text-3xl font-semibold mt-1 bg-gradient-to-r from-white to-love-soft bg-clip-text text-transparent">
+      Prêts à jouer ?
+    </h1>
+  </header>
+
+  {% if couple %}
+  <div class="grid grid-cols-3 gap-3">
+    <div class="card-stat">
+      {% include "partials/icon.html" with name="streak" class="icon" %}
+      <p class="text-xs text-white/45 mt-2">Streak</p>
+      <p class="font-bold text-lg">{{ couple.streak_days }}<span class="text-sm font-normal text-white/40">j</span></p>
+    </div>
+    <a href="{% url 'game:history' %}" class="card-stat hover:border-love/25 transition-colors">
+      {% include "partials/icon.html" with name="compat" class="icon" %}
+      <p class="text-xs text-white/45 mt-2">Compat.</p>
+      <p class="font-bold text-lg">{{ couple.compatibility_score }}<span class="text-sm font-normal text-white/40">%</span></p>
+    </a>
+    <a href="{% url 'game:level_activity' %}" class="card-stat hover:border-premium/25 transition-colors">
+      {% include "partials/icon.html" with name="level" class="icon" %}
+      <p class="text-xs text-white/45 mt-2">Niveau</p>
+      <p class="font-bold text-lg">{{ couple.level }}</p>
+    </a>
+  </div>
+
+  {% if usage_summary.badge %}
+  <p class="text-center text-sm font-medium px-4 py-2 rounded-full border border-premium/25 bg-premium/10 text-premium-soft">
+    {{ usage_summary.badge }}
+  </p>
+  {% elif usage_summary.weekend_pass_pending %}
+  <p class="text-center text-sm text-white/55">
+    Pass weekend actif — illimité dès le {{ usage_summary.weekend_starts }}
+  </p>
+  {% elif usage_summary and not usage_summary.unlimited %}
+  <div class="rounded-2xl px-4 py-3 text-center text-sm border border-white/8 bg-white/5">
+    <span class="text-love-soft font-semibold text-lg">{{ usage_summary.remaining }}</span>
+    <span class="text-white/50"> / {{ usage_summary.limit }} questions restantes</span>
+    <p class="text-xs text-white/35 mt-1">Compteur partagé — même nombre pour vous deux</p>
+  </div>
+  {% endif %}
+
+  <a href="{% url 'payments:plans' %}" class="btn-ghost w-full text-center text-sm">Voir les offres</a>
+
+  <a href="{% url 'game:play' %}" class="btn-primary w-full text-center text-lg py-4 flex items-center justify-center gap-2">
+    {% include "partials/icon.html" with name="play" class="icon w-5 h-5" %}
+    Démarrer une session
+  </a>
+  <a href="{% url 'game:stats' %}" class="btn-ghost w-full text-center">Stats & insights</a>
+  {% else %}
+  <div class="hero-heart scale-75 my-4">
+    <span class="hero-heart__ring"></span>
+    <div class="hero-heart__core">
+      {% include "partials/icon.html" with name="link" class="icon" %}
+    </div>
+  </div>
+  <a href="{% url 'couples:setup' %}" class="btn-primary w-full text-center">Lier mon partenaire</a>
+  {% endif %}
+
+  <!-- Bouton de déconnexion flotant -->
+  {% if user.is_authenticated %}
+  <a href="{% url 'users:logout' %}" 
+     class="fixed bottom-6 right-6 flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-love to-love-dark text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110 active:scale-95"
+     title="Déconnecter">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+    </svg>
+  </a>
+  {% endif %}
+
+  <!-- Script pour empêcher la navigation arrière -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Empêcher la navigation arrière pendant qu'on est connecté
+      if ({{ user.is_authenticated|yesno:"true,false" }}) {
+        history.pushState(null, null, window.location.href);
+        window.addEventListener('popstate', function(event) {
+          history.pushState(null, null, window.location.href);
+        });
+      }
+    });
+  </script>
+</section>
+{% endblock %}

@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Connexion — K'er {% endblock %}
+{% block content %}
+<section class="flex-1 flex flex-col justify-center gap-4 max-w-md mx-auto">
+  <h1 class="text-2xl font-semibold">Bon retour 💕</h1>
+  
+  <form method="post" id="login-form" class="space-y-3">
+    {% csrf_token %}
+    
+    <!-- Identifiant -->
+    <div class="form-group">
+      <label for="id_username" class="block text-sm font-medium text-white/80 mb-1">
+        Identifiant
+      </label>
+      <input type="text" name="username" id="id_username" class="input-field" required>
+      {% if form.username.errors %}
+        <ul class="text-red-400 text-xs mt-1 space-y-0">
+          {% for error in form.username.errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+
+    <!-- Mot de passe -->
+    <div class="form-group">
+      <label for="id_password" class="block text-sm font-medium text-white/80 mb-1">
+        Mot de passe
+      </label>
+      <input type="password" name="password" id="id_password" class="input-field" required>
+      {% if form.password.errors %}
+        <ul class="text-red-400 text-xs mt-1 space-y-0">
+          {% for error in form.password.errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+
+    {% if form.non_field_errors %}
+      <div class="text-red-400 text-xs mt-2 p-2 bg-red-500/10 border border-red-500/20 rounded">
+        {% for error in form.non_field_errors %}
+          <p>{{ error }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <button type="submit" class="btn-primary w-full">Se connecter</button>
+  </form>
+
+  <p class="text-center text-sm text-white/60">
+    Pas encore de compte? <a href="{% url 'users:signup' %}" class="text-love-soft hover:text-love font-medium">S'inscrire</a>
+  </p>
+</section>
+
+<style>
+  #login-form input[type="text"],
+  #login-form input[type="password"] {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid rgba(255, 107, 157, 0.2);
+    border-radius: 0.875rem;
+    background: rgba(255, 255, 255, 0.06);
+    color: white;
+    font-size: 1rem;
+    font-family: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  #login-form input[type="text"]::placeholder,
+  #login-form input[type="password"]::placeholder {
+    color: rgba(255, 255, 255, 0.35);
+  }
+  
+  #login-form input[type="text"]:focus,
+  #login-form input[type="password"]:focus {
+    outline: none;
+    border-color: rgba(255, 107, 157, 0.5);
+    box-shadow: 0 0 0 3px rgba(255, 77, 143, 0.2);
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+  }
+</style>
+{% endblock %}

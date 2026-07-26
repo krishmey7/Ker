@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Rejoindre — K'er{% endblock %}
+{% block content %}
+<section class="flex-1 flex flex-col justify-center gap-6 max-w-md mx-auto">
+  <div>
+    <h1 class="text-2xl font-semibold">Code de la room</h1>
+    <p class="text-white/60 mt-1 text-sm">Entrez le code partagé par votre partenaire</p>
+  </div>
+  
+  {% if error %}
+    <div class="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
+      {{ error }}
+    </div>
+  {% endif %}
+  
+  <form method="post" action="{% url 'couples:join_submit' %}" class="space-y-4">
+    {% csrf_token %}
+    <input name="room_code" type="text" maxlength="8" placeholder="ABC123"
+           class="input-field text-center text-3xl tracking-widest uppercase font-semibold" required>
+    
+    <!-- Profil du couple (optionnel pour user2) -->
+    <div class="space-y-3 p-4 bg-white/5 rounded-lg border border-white/10">
+      <p class="text-sm text-white/70">Profil de votre couple (optionnel)</p>
+      
+      <div>
+        <label class="block text-xs text-white/60 mb-1">Durée de votre relation</label>
+        <select name="relationship_duration" class="input-field w-full text-sm">
+          <option value="">-- Ne pas modifier --</option>
+          <option value="less_than_1_year">Moins d'un an</option>
+          <option value="1_to_3_years">1 à 3 ans</option>
+          <option value="more_than_3_years">Plus de 3 ans</option>
+          <option value="engaged">Fiancés</option>
+        </select>
+      </div>
+      
+      <div>
+        <label class="block text-xs text-white/60 mb-1">Continent de résidence</label>
+        <select name="residence_continent" class="input-field w-full text-sm">
+          <option value="">-- Ne pas modifier --</option>
+          <option value="africa">Afrique</option>
+          <option value="europe">Europe</option>
+          <option value="north_america">Amérique du Nord</option>
+          <option value="south_america">Amérique du Sud</option>
+          <option value="asia">Asie</option>
+          <option value="oceania">Océanie</option>
+        </select>
+      </div>
+      
+      <div class="flex items-center gap-3">
+        <input type="checkbox" name="is_long_distance" id="long_distance" class="w-4 h-4 rounded">
+        <label for="long_distance" class="text-xs text-white/60">Relation à distance</label>
+      </div>
+    </div>
+    
+    <button type="submit" class="btn-primary w-full">Rejoindre</button>
+  </form>
+  
+  <div class="text-center">
+    <a href="{% url 'couples:setup' %}" class="text-sm text-white/60 hover:text-white/80 transition-colors">
+      ← Retour
+    </a>
+  </div>
+</section>
+{% endblock %}

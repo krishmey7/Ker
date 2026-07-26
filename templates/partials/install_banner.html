@@ -1,0 +1,45 @@
+{% load static %}
+<div
+  id="ker-install-banner"
+  class="hidden fixed bottom-0 left-0 right-0 z-[100] px-4 pb-safe pointer-events-none"
+  role="dialog"
+  aria-label="Installer l'application"
+>
+  <div class="pointer-events-auto max-w-lg mx-auto mb-4 rounded-2xl border border-love/25 bg-[#2d1320]/98 backdrop-blur-md shadow-xl shadow-black/50 p-4 flex gap-3 items-start">
+    <img
+      src="{% static 'images/icons/icon-192.png' %}"
+      alt=""
+      width="48"
+      height="48"
+      class="rounded-xl shrink-0"
+      data-fallback="{% static 'images/logo.png' %}"
+      onerror="if(this.dataset.fallback){this.src=this.dataset.fallback}"
+    >
+    <div class="flex-1 min-w-0 text-white">
+      <p id="ker-install-title" class="font-semibold text-sm text-white">Installer l'application ❤️</p>
+      <p id="ker-install-hint-native" class="text-xs text-white/80 mt-1.5 leading-snug">
+        Accès rapide depuis l'écran d'accueil, comme une vraie app — un toucher suffit.
+      </p>
+      <p id="ker-install-hint-android" class="hidden text-xs text-white/85 mt-1.5 leading-relaxed">
+        Sur la plupart des navigateurs Android : touchez le menu <strong>⋮</strong> en haut à droite, puis
+        <strong>« Installer l'application »</strong> ou <strong>« Ajouter à l'écran d'accueil »</strong>.
+        En connexion HTTP (Wi‑Fi local), ce menu est souvent la seule méthode.
+      </p>
+      <p id="ker-install-hint-ios" class="hidden text-xs text-white/85 mt-1.5 leading-relaxed">
+        Sur iPhone/iPad : touchez l’icône <strong class="text-love-soft">Partager</strong>
+        puis <strong class="text-love-soft">« Sur l'écran d'accueil »</strong>. Apple n'autorise pas l'installation automatique depuis le site.
+      </p>
+      <p id="ker-install-hint-desktop" class="hidden text-xs text-white/85 mt-1.5 leading-snug">
+        Dans la barre d'adresse, cherchez l'icône d'installation ⊕ ou le menu du navigateur → <strong>« Installer cette application »</strong>.
+      </p>
+      <div class="flex gap-2 mt-3">
+        <button type="button" id="ker-install-accept" class="flex-1 py-2.5 px-3 rounded-xl bg-love text-white text-sm font-medium hover:opacity-90 transition">
+          Installer
+        </button>
+        <button type="button" id="ker-install-dismiss" class="py-2.5 px-3 rounded-xl text-sm text-white/80 hover:text-white border border-white/20 transition shrink-0">
+          Plus tard
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

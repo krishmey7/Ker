@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Activité niveau {{ couple_stats.level }} — K'er{% endblock %}
+{% block content %}
+<section class="flex-1 flex flex-col gap-6 pt-4 animate-fade-in">
+  <header class="flex items-center gap-3">
+    <a href="{% url 'game:play' %}" class="btn-ghost px-3 py-2 text-sm">← Room</a>
+    <div>
+      <h1 class="font-display text-2xl font-semibold">Activité niveau {{ couple_stats.level }}</h1>
+      <p class="text-sm text-white/45">Proposée pour vous par l'IA</p>
+    </div>
+  </header>
+
+  <div class="grid grid-cols-2 gap-3">
+    <div class="card-stat">
+      {% include "partials/icon.html" with name="compat" class="icon" %}
+      <p class="text-xs text-white/45 mt-2">Compatibilité</p>
+      <p class="font-bold text-lg">{{ couple_stats.compatibility_score }}%</p>
+    </div>
+    <div class="card-stat">
+      {% include "partials/icon.html" with name="level" class="icon" %}
+      <p class="text-xs text-white/45 mt-2">Progression</p>
+      <p class="font-bold text-lg">{{ couple_stats.completed_in_level }}/{{ couple_stats.per_level }}</p>
+    </div>
+  </div>
+
+  <article class="rounded-2xl border border-premium/25 bg-gradient-to-br from-premium/10 to-love/5 p-6 space-y-4">
+    <span class="category-pill">Niveau {{ couple_stats.level }}</span>
+    <h2 class="font-display text-xl font-semibold text-white">{{ activity.title }}</h2>
+    <p class="text-white/75 leading-relaxed">{{ activity.description }}</p>
+    <p class="text-sm text-white/45">
+      Durée estimée : {{ activity.duration_minutes }} min
+    </p>
+    {% if activity.tips %}
+    <p class="text-sm text-love-soft/90 bg-love/10 border border-love/20 rounded-xl px-4 py-3">
+      {{ activity.tips }}
+    </p>
+    {% endif %}
+  </article>
+
+  {% if couple_stats.remaining_to_next > 0 %}
+  <p class="text-center text-sm text-white/40">
+    Encore {{ couple_stats.remaining_to_next }} question{{ couple_stats.remaining_to_next|pluralize }}
+    pour atteindre le niveau {{ couple_stats.level|add:1 }}.
+  </p>
+  {% endif %}
+
+  <a href="{% url 'game:play' %}" class="btn-primary w-full text-center">Retour à la room</a>
+  <a href="{% url 'game:history' %}" class="btn-ghost w-full text-center text-sm">Voir l'historique</a>
+
+  <!-- Bouton de déconnexion flotant -->
+  {% if user.is_authenticated %}
+  <a href="{% url 'users:logout' %}" 
+     class="fixed bottom-6 right-6 flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-love to-love-dark text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110 active:scale-95"
+     title="Déconnecter">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+    </svg>
+  </a>
+  {% endif %}
+</section>
+{% endblock %}

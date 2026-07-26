@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Session — K'er{% endblock %}
+{% block content %}
+<section class="flex-1 flex flex-col max-h-screen overflow-y-auto"
+         x-data="coupleRoom('{{ room_code }}', {{ request.user.id }}{% if couple_stats %}, {{ couple_stats.compatibility_score }}, {{ couple_stats.level }}{% endif %})"
+         x-init="init(); connect()">
+
+  <div class="flex justify-center mb-3" x-show="connectionStatus !== 'live'">
+    <span class="text-xs px-3 py-1 rounded-full border"
+          :class="connectionStatus === 'offline'
+            ? 'border-love/40 text-love-soft bg-love/10'
+            : 'border-white/20 text-white/60 bg-white/5'"
+          x-text="connectionLabel()"></span>
+  </div>
+
+  <p x-show="errorMessage" x-text="errorMessage"
+     class="mb-4 text-sm text-center text-love-soft bg-love/10 border border-love/25 rounded-xl px-3 py-2"></p>
+
+  <p x-show="usage.badge" x-text="usage.badge"
+     class="text-center text-xs font-medium mb-2 px-3 py-1 rounded-full border border-premium/20 bg-premium/10 text-premium-soft"></p>
+
+  {% if couple_stats %}
+  <div class="grid grid-cols-2 gap-2 mb-4">
+    <a href="{% url 'game:history' %}"
+       class="card-stat py-3 px-3 text-left hover:border-love/30 transition-colors"
+       title="Historique des questions">
+      {% include "partials/icon.html" with name="compat" class="icon w-5 h-5" %}
+      <p class="text-[10px] text-white/40 mt-1 uppercase tracking-wide">Compat.</p>
+      <p class="font-bold text-base leading-none">
+        <span x-text="coupleCompatibility"></span><span class="text-sm font-normal text-white/40">%</span>
+      </p>
+    </a>
+    <a href="{% url 'game:level_activity' %}"
+       class="card-stat py-3 px-3 text-left hover:border-premium/30 transition-colors"
+       title="Activité de couple">
+      {% include "partials/icon.html" with name="level" class="icon w-5 h-5" %}
+      <p class="text-[10px] text-white/40 mt-1 uppercase tracking-wide">Niveau</p>
+      <p class="font-bold text-base leading-none" x-text="coupleLevel"></p>
+    </a>
+  </div>
+  {% endif %}
+
+  <!-- Lobby -->
+  <template x-if="phase === 'lobby'">
+    <div class="flex-1 flex flex-col justify-center gap-8 text-center animate-fade-in">
+      <div class="hero-heart scale-90">
+        <span class="hero-heart__ring"></span>
+        <div class="hero-heart__core">
+          {% include "partials/icon.html" with name="spark" class="icon" %}
+        </div>
+      </div>
+      <p class="text-white/65">Choisissez une ambiance, puis lancez la magie.</p>
+      <select x-model="category" class="input-field text-left">
+        <option value="">Toutes les ambiances</option>
+        <option value="romantic">Romantique</option>
+        <option value="funny">Drôle</option>
+        <option value="spicy">Spicy</option>
+        <option value="deep">Profond</option>
+      </select>
+      <button @click="startSession()" class="btn-primary w-full py-4 text-lg flex items-center justify-center gap-2">
+        {% include "partials/icon.html" with name="play" class="icon w-5 h-5 inline" %}
+        Commencer
+      </button>
+    </div>
+  </template>
+
+  <!-- Question -->
+  <template x-if="phase === 'question'">
+    <div class="flex-1 flex flex-col justify-center gap-6 animate-slide-up question-glow">
+      <span class="category-pill self-center" x-text="categoryLabel(question.category)"></span>
+      <h2 class="font-display text-2xl font-medium leading-snug text-center text-white/95 px-2"
+          x-text="question.text"></h2>
+      <p x-show="partnerHasAnswered && !hasAnswered"
+         class="text-center text-sm text-love-soft/90 bg-love/10 border border-love/20 rounded-xl px-3 py-2">
+        Votre moitié a scellé sa réponse — à vous de jouer
+      </p>
+      <textarea x-model="answerText" rows="4" placeholder="Votre réponse secrète…"
+                class="input-field resize-none" :disabled="hasAnswered"></textarea>
+      <button @click="submitAnswer()" class="btn-primary w-full"
+              :disabled="hasAnswered || !answerText.trim()">
+        <span x-show="!hasAnswered">Sceller ma réponse</span>
+        <span x-show="hasAnswered" class="flex items-center justify-center gap-2">
+          {% include "partials/icon.html" with name="heart" class="icon w-4 h-4" %}
+          Réponse scellée
+        </span>
+      </button>
+    </div>
+  </template>
+
+  <!-- Attente partenaire -->
+  <template x-if="phase === 'waiting'">
+    <div class="waiting-stage flex-1 justify-center">
+      <div class="loader-orbital">
+        <div class="loader-orbital__ring"></div>
+        <div class="loader-orbital__ring"></div>
+        <div class="loader-orbital__core"></div>
+      </div>
+      <p class="text-lg font-medium text-white/80"
+         x-text="waitingReveal ? 'Révélation imminente…' : 'En attente de votre moitié'"></p>
+      <p class="text-sm text-white/45"
+         x-text="waitingReveal ? 'Les deux réponses sont scellées' : 'Le moment de révélation approche…'"></p>
+    </div>
+  </template>
+
+  <!-- REVEAL — écran waouh -->
+  <template x-if="phase === 'reveal'">
+    <div class="reveal-stage flex-1">
+      <span class="reveal-badge">
+        {% include "partials/icon.html" with name="spark" class="icon w-3.5 h-3.5" %}
+        Révélation
+      </span>
+      <p class="text-center text-white/55 text-sm px-4 leading-relaxed"
+         x-text="reveal.question?.text"></p>
+
+      <div class="space-y-3 mt-2">
+        <template x-if="myAnswer()">
+          <div class="reveal-card reveal-card--mine">
+            <p class="reveal-card__label">Vous</p>
+            <p class="reveal-card__text" x-text="myAnswer().text"></p>
+          </div>
+        </template>
+        <template x-if="partnerAnswer()">
+          <div class="reveal-card reveal-card--partner">
+            <p class="reveal-card__label" x-text="partnerAnswer().label"></p>
+            <p class="reveal-card__text" x-text="partnerAnswer().text"></p>
+            <p x-show="partnerReaction" class="reveal-card__reaction" x-text="partnerReaction"></p>
+          </div>
+        </template>
+      </div>
+
+      <p class="text-center text-2xl font-display font-semibold text-love-soft"
+         x-show="reveal.compatibility_percent != null">
+        <span x-text="reveal.compatibility_percent"></span><span class="text-lg text-white/50">% compatibles</span>
+      </p>
+      <p class="reveal-hint" x-text="reveal.compatibility_hint"></p>
+
+      <div class="reactions-bar">
+        <template x-for="r in reactions" :key="r.id">
+          <button type="button"
+                  @click="sendReaction(r.emoji)"
+                  class="reaction-pill reaction-pill--emoji"
+                  :class="{ 'is-active': activeReaction === r.emoji }"
+                  :aria-label="r.label"
+                  :title="r.label">
+            <span class="reaction-pill__burst"></span>
+            <span class="reaction-emoji" x-text="r.emoji"></span>
+          </button>
+        </template>
+      </div>
+
+      <p class="text-center text-sm text-white/45"
+         x-show="autoNextCountdown > 0"
+         x-text="'Prochaine question dans ' + autoNextCountdown + ' s…'"></p>
+
+      <button @click="nextQuestion()" class="btn-primary w-full mt-1">
+        <span x-show="autoNextCountdown > 0">Passer maintenant</span>
+        <span x-show="autoNextCountdown <= 0">Question suivante</span>
+      </button>
+    </div>
+  </template>
+
+  <!-- Transition — chargement question IA -->
+  <template x-if="phase === 'transition'">
+    <div class="waiting-stage flex-1 justify-center">
+      <div class="loader-orbital">
+        <div class="loader-orbital__ring"></div>
+        <div class="loader-orbital__ring"></div>
+        <div class="loader-orbital__core"></div>
+      </div>
+      <p class="text-lg font-medium text-white/80">Nouvelle question en préparation…</p>
+    </div>
+  </template>
+
+  <!-- Paywall — pub récompensée à deux -->
+  <template x-if="phase === 'paywall'">
+    <div class="flex-1 flex flex-col justify-center gap-6 text-center animate-fade-in px-2">
+      <div class="visual-gem scale-90">
+        {% include "partials/icon.html" with name="premium" class="icon" %}
+      </div>
+      <div>
+        <h2 class="font-display text-xl font-semibold">Continuez ensemble</h2>
+        <p class="text-white/55 mt-2 text-sm leading-relaxed">
+          Regardez une pub pour continuer <span class="text-love-soft">❤️</span><br>
+          <span class="text-white/40 text-xs">Chacun doit regarder sa pub</span>
+        </p>
+      </div>
+
+      <p x-show="adMessage" x-text="adMessage"
+         class="text-sm text-love-soft bg-love/10 border border-love/20 rounded-xl px-4 py-2"></p>
+
+      <p x-show="adPlaying" class="text-lg font-medium text-white/80"
+         x-text="'Publicité… ' + adCountdown + 's'"></p>
+
+      <p x-show="adReward.waiting_for_partner" class="text-white/70 text-sm">
+        En attente du partenaire <span class="text-love-soft">❤️</span>
+      </p>
+
+      <p x-show="adReward.partner_completed && !adReward.user_completed"
+         class="text-white/50 text-sm">
+        Votre moitié a regardé sa pub — à votre tour
+      </p>
+
+      <button type="button"
+              @click="watchRewardedAd()"
+              class="btn-primary w-full py-4 text-lg"
+              :disabled="adPlaying || !adReward.can_watch_ad"
+              x-show="adReward.can_watch_ad">
+        🎥 Regarder une pub
+      </button>
+
+      <a href="{% url 'payments:plans' %}" class="btn-ghost w-full text-sm py-3">
+        Voir les offres — dès 0,50$
+      </a>
+    </div>
+  </template>
+
+  <!-- Bouton de déconnexion flotant -->
+  {% if user.is_authenticated %}
+  <a href="{% url 'users:logout' %}" 
+     class="fixed bottom-6 right-6 flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-love to-love-dark text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110 active:scale-95"
+     title="Déconnecter">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+    </svg>
+  </a>
+  {% endif %}
+</section>
+
+<!-- Script pour empêcher la navigation arrière -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Empêcher la navigation arrière pendant la session de jeu
+    history.pushState(null, null, window.location.href);
+    window.addEventListener('popstate', function(event) {
+      history.pushState(null, null, window.location.href);
+      // Optionnel : afficher une notification
+      console.warn('Navigation arrière désactivée pendant la session');
+    });
+  });
+</script>
+
+{% endblock %}
+{% block extra_js %}
+<script>
+  window.KER_AD_CONFIG = {
+    debug: {{ ker_ad_debug|yesno:"true,false" }},
+    simulationSeconds: {{ ker_ad_simulation_seconds }},
+    completeUrl: "{% url 'payments:rewarded_ad_complete' %}",
+  };
+</script>
+<script src="{% static 'js/rewarded_ads.js' %}"></script>
+<script src="{% static 'js/room.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Débloquer — K'er{% endblock %}
+{% block content %}
+<section class="flex-1 flex flex-col justify-center gap-8 text-center animate-fade-in px-4">
+  <div class="visual-gem">
+    {% include "partials/icon.html" with name="premium" class="icon" %}
+  </div>
+  <div>
+    <h1 class="font-display text-2xl font-semibold">Continuez ensemble</h1>
+    <p class="text-white/55 mt-2 text-sm leading-relaxed">
+      Retournez dans la room pour regarder une pub à deux et débloquer
+      <strong class="text-love-soft">+5 questions</strong>.
+    </p>
+  </div>
+
+  <a href="{% url 'game:play' %}" class="btn-primary w-full py-4">
+    🎥 Ouvrir la room
+  </a>
+
+  <a href="{% url 'payments:premium' %}" class="btn-ghost w-full py-3">
+    Premium — questions illimitées
+  </a>
+
+  {% if usage_summary %}
+  <p class="text-xs text-white/35">
+    {{ usage_summary.used }} / {{ usage_summary.limit }} utilisées aujourd'hui
+  </p>
+  {% endif %}
+</section>
+{% endblock %}

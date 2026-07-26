@@ -1,0 +1,45 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr" class="h-full dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0d0509">
+  <title>Hors ligne — K'er</title>
+  <link rel="icon" href="{% static 'images/favicon.ico' %}" sizes="any">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            love: { DEFAULT: '#ff4d8f', soft: '#ff6b9d' },
+            surface: { DEFAULT: '#0d0509', card: '#2d1320' },
+          },
+        },
+      },
+    };
+  </script>
+</head>
+<body class="h-full bg-surface text-white font-sans antialiased flex items-center justify-center px-6">
+  <div class="text-center max-w-sm w-full space-y-6">
+    <img src="{% static 'images/logo.png' %}" alt="K'er" width="96" height="96" class="mx-auto rounded-3xl shadow-lg shadow-love/20">
+    <h1 class="text-2xl font-semibold">Vous êtes hors ligne</h1>
+    <p class="text-white/70 text-sm leading-relaxed">
+      Pas de connexion pour l'instant. Revenez en ligne pour jouer à deux en temps réel.
+      Les pages déjà visitées restent consultables.
+    </p>
+    <button
+      type="button"
+      onclick="location.reload()"
+      class="w-full py-3 rounded-2xl bg-love text-white font-medium hover:opacity-90 transition"
+    >
+      Réessayer
+    </button>
+    <a href="/couple/" class="block text-sm text-love-soft hover:underline">Retour à l'accueil</a>
+  </div>
+  <script src="{% static 'js/offline-handler.js' %}"></script>
+</body>
+</html>

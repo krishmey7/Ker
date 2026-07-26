@@ -1,0 +1,40 @@
+{
+  "name": "K'er — Jeux de couple",
+  "short_name": "K'er",
+  "description": "Rituel émotionnel quotidien pour couples en temps réel",
+  "start_url": "/couple/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d0509",
+  "theme_color": "#0d0509",
+  "lang": "fr",
+  "categories": ["lifestyle", "games"],
+  "icons": [
+    {
+      "src": "/static/images/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/images/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/static/images/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/images/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": []
+}
