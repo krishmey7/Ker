@@ -58,7 +58,9 @@
         <option value="spicy">Spicy</option>
         <option value="deep">Profond</option>
       </select>
-      <button @click="startSession()" class="btn-primary w-full py-4 text-lg flex items-center justify-center gap-2">
+      <button @click="startSession()"
+              :disabled="connectionStatus === 'offline'"
+              class="btn-primary w-full py-4 text-lg flex items-center justify-center gap-2">
         {% include "partials/icon.html" with name="play" class="icon w-5 h-5 inline" %}
         Commencer
       </button>

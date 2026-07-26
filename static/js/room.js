@@ -166,17 +166,20 @@ function coupleRoom(roomCode, userId, initialCompatibility = 50, initialLevel = 
       if (this.socket?.readyState === WebSocket.OPEN) return;
 
       this.connectionStatus = 'connecting';
-      const proto = location.protocol === 'https:' ? 'wss' : 'ws';
-      const url = `${proto}://${location.host}/ws/couple/${this.roomCode}/`;
+      const wsScheme = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+      const url = `${wsScheme}${window.location.host}/ws/couple/${encodeURIComponent(this.roomCode)}/`;
+      console.log('[WS] connecting to', url, 'userId=', this.userId, 'roomCode=', this.roomCode);
 
       try {
         this.socket = new WebSocket(url);
-      } catch {
+      } catch (err) {
+        console.error('[WS] connect error', err);
         this.scheduleReconnect();
         return;
       }
 
       this.socket.onopen = () => {
+        console.log('[WS] open');
         this.connectionStatus = 'live';
         this.reconnectDelay = 800;
         this.errorMessage = '';
@@ -186,17 +189,20 @@ function coupleRoom(roomCode, userId, initialCompatibility = 50, initialLevel = 
       this.socket.onmessage = (e) => {
         try {
           const msg = JSON.parse(e.data);
+          console.log('[WS] message', msg);
           this.handleMessage(msg);
-        } catch {
-          /* message invalide ignoré */
+        } catch (err) {
+          console.warn('[WS] invalid message', err, e.data);
         }
       };
 
-      this.socket.onerror = () => {
+      this.socket.onerror = (err) => {
+        console.error('[WS] error', err);
         this.connectionStatus = 'reconnecting';
       };
 
-      this.socket.onclose = () => {
+      this.socket.onclose = (ev) => {
+        console.warn('[WS] closed', ev.code, ev.reason);
         this.scheduleReconnect();
       };
     },
@@ -384,6 +390,19 @@ function coupleRoom(roomCode, userId, initialCompatibility = 50, initialLevel = 
     },
 
     startSession() {
+      if (!navigator.onLine) {
+        this.errorMessage = 'Hors ligne — impossible de démarrer la partie.';
+        return;
+      }
+
+      if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
+        this.errorMessage = 'Connexion WebSocket en cours… Réessayez dans un instant.';
+        console.log('[WS] startSession queued, socket not ready', this.socket?.readyState);
+        if (!this.socket) {
+          this.connect();
+        }
+      }
+
       this.send('start_session', { category: this.category });
     },
 
