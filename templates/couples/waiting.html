@@ -2,7 +2,8 @@
 {% block title %}En attente — K'er{% endblock %}
 {% block content %}
 <section class="flex-1 flex flex-col items-center justify-center text-center gap-8 animate-fade-in"
-         data-waiting-room-code="{{ room_code }}">
+         data-waiting-room-code="{{ room_code }}"
+         data-waiting-status-url="{% url 'couples:waiting_status' room_code=room_code %}">
   <div class="sync-orbs">
     <span class="sync-orbs__dot sync-orbs__dot--a"></span>
     <span class="sync-orbs__line"></span>
@@ -37,10 +38,12 @@
       window.location.replace(url || '{% url "couples:dashboard" %}');
     }
 
+    const statusUrl = section.getAttribute('data-waiting-status-url');
+
     async function checkStatus() {
-      if (autoRedirecting) return;
+      if (autoRedirecting || !statusUrl) return;
       try {
-        const response = await fetch(`/couples/waiting/${roomCode}/status/`);
+        const response = await fetch(statusUrl);
         const data = await response.json();
         if (data.ready && data.redirect_url) {
           redirectToRoom(data.redirect_url);
