@@ -65,12 +65,17 @@ class GameRoomConsumer(AsyncJsonWebsocketConsumer):
                 return
             raise
         except Exception as exc:
+            print("================ WS ERROR ================")
             print("Erreur WebSocket Consumer dans receive_json:", str(exc))
+            print("Received event:", event_type, payload)
             traceback.print_exc()
+            print("==========================================")
             await self.send_json(
                 {
                     "type": "error",
-                    "payload": {"message": "Erreur interne WebSocket."},
+                    "payload": {
+                        "message": f"Erreur interne WebSocket : {str(exc)}",
+                    },
                 }
             )
             return

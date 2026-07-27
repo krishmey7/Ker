@@ -4,6 +4,7 @@ Orchestration WebSocket — événements room, sans logique IA directe.
 from __future__ import annotations
 
 import logging
+import traceback
 
 from django.conf import settings
 from django.db import transaction
@@ -213,17 +214,31 @@ class GameRealtimeService:
     @staticmethod
     def _handle_start_session(room_code: str, user_id: int, payload: dict) -> dict | None:
         """Démarre une nouvelle session ou reprend une session active bloquée."""
-        couple = Couple.objects.filter(room_code=room_code.upper()).first()
-        if not couple or not couple.is_complete:
-            return None
-        if not UsageLimitService.can_play(couple):
-            return {"broadcast": GameRealtimeService._paywall_broadcast(couple)}
+        try:
+            couple = Couple.objects.filter(room_code=room_code.upper()).first()
+            if not couple or not couple.is_complete:
+                return None
+            if not UsageLimitService.can_play(couple):
+                return {"broadcast": GameRealtimeService._paywall_broadcast(couple)}
 
-        session = GameRealtimeService._active_session(room_code)
-        if session:
-            return GameRealtimeService._resume_active_session(couple, session)
+            session = GameRealtimeService._active_session(room_code)
+            if session:
+                return GameRealtimeService._resume_active_session(couple, session)
 
-        return GameRealtimeService._start_new_session(couple, payload)
+            return GameRealtimeService._start_new_session(couple, payload)
+        except Exception as exc:
+            print("================ WS ERROR ================")
+            print("Erreur dans GameRealtimeService._handle_start_session:", str(exc))
+            traceback.print_exc()
+            print("==========================================")
+            return {
+                "broadcast": {
+                    "type": "error",
+                    "payload": {
+                        "message": f"Erreur au démarrage de la partie : {str(exc)}",
+                    },
+                }
+            }
 
     @staticmethod
     def _resume_active_session(couple: Couple, session: GameSession) -> dict | None:
@@ -245,18 +260,32 @@ class GameRealtimeService:
 
     @staticmethod
     def _start_new_session(couple: Couple, payload: dict) -> dict | None:
-        session = GameSessionService.start(
-            couple,
-            game_mode=payload.get("game_mode", GameMode.SECRET_ANSWER),
-            category=payload.get("category", ""),
-        )
-        if not GameRealtimeService._serialize_active_question(session):
-            if not GameRealtimeService._try_recover_question(session):
-                return GameRealtimeService._no_question_error_broadcast()
-            session.refresh_from_db()
-        UsageLimitService.increment(couple)
-        usage = UsageLimitService.get_usage_summary_for_couple(couple)
-        return {"broadcast": GameRealtimeService._question_broadcast(session, usage)}
+        try:
+            session = GameSessionService.start(
+                couple,
+                game_mode=payload.get("game_mode", GameMode.SECRET_ANSWER),
+                category=payload.get("category", ""),
+            )
+            if not GameRealtimeService._serialize_active_question(session):
+                if not GameRealtimeService._try_recover_question(session):
+                    return GameRealtimeService._no_question_error_broadcast()
+                session.refresh_from_db()
+            UsageLimitService.increment(couple)
+            usage = UsageLimitService.get_usage_summary_for_couple(couple)
+            return {"broadcast": GameRealtimeService._question_broadcast(session, usage)}
+        except Exception as exc:
+            print("================ WS ERROR ================")
+            print("Erreur dans GameRealtimeService._start_new_session:", str(exc))
+            traceback.print_exc()
+            print("==========================================")
+            return {
+                "broadcast": {
+                    "type": "error",
+                    "payload": {
+                        "message": f"Erreur interne au démarrage de la session : {str(exc)}",
+                    },
+                }
+            }
 
     @staticmethod
     def _handle_answer(session: GameSession, user_id: int, payload: dict) -> dict | None:
