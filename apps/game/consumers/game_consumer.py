@@ -1,4 +1,5 @@
 """Consumer WebSocket jeu — synchronisation temps réel de la room couple."""
+import traceback
 from django.db import OperationalError
 
 from channels.db import database_sync_to_async
@@ -23,10 +24,16 @@ class GameRoomConsumer(AsyncJsonWebsocketConsumer):
             await self.close()
             return
 
-        await self.channel_layer.group_add(self.group_name, self.channel_name)
-        await self.accept()
-        state = await self._get_session_state(user.id)
-        await self.send_json({"type": "session_state", "payload": state})
+        try:
+            await self.channel_layer.group_add(self.group_name, self.channel_name)
+            await self.accept()
+            state = await self._get_session_state(user.id)
+            await self.send_json({"type": "session_state", "payload": state})
+        except Exception as exc:
+            print("Erreur WebSocket Consumer dans connect:", str(exc))
+            traceback.print_exc()
+            await self.close()
+            return
 
     async def disconnect(self, close_code):
         if hasattr(self, "group_name"):
@@ -57,12 +64,32 @@ class GameRoomConsumer(AsyncJsonWebsocketConsumer):
                 )
                 return
             raise
+        except Exception as exc:
+            print("Erreur WebSocket Consumer dans receive_json:", str(exc))
+            traceback.print_exc()
+            await self.send_json(
+                {
+                    "type": "error",
+                    "payload": {"message": "Erreur interne WebSocket."},
+                }
+            )
+            return
 
         if result and result.get("broadcast"):
-            await self.channel_layer.group_send(
-                self.group_name,
-                {"type": "room.event", "data": result["broadcast"]},
-            )
+            try:
+                await self.channel_layer.group_send(
+                    self.group_name,
+                    {"type": "room.event", "data": result["broadcast"]},
+                )
+            except Exception as exc:
+                print("Erreur WebSocket Consumer lors de group_send:", str(exc))
+                traceback.print_exc()
+                await self.send_json(
+                    {
+                        "type": "error",
+                        "payload": {"message": "Erreur de diffusion WebSocket."},
+                    }
+                )
         elif result is None and event_type == "answer_submitted":
             await self.send_json(
                 {

@@ -67,3 +67,11 @@ class ServiceWorkerNoCacheMiddleware:
 
 # Ensure our middleware runs after existing middleware (WhiteNoise is defined in base settings)
 MIDDLEWARE = MIDDLEWARE + ['config.settings.prod.ServiceWorkerNoCacheMiddleware']
+
+# Channels production settings — use Redis via the REDIS_URL environment variable.
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {"hosts": [env("REDIS_URL", default="redis://127.0.0.1:6379/0")]},
+    },
+}
