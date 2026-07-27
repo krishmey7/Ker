@@ -116,6 +116,43 @@
     display: flex;
     flex-direction: column;
   }
+
+  @media (max-width: 640px) {
+    section {
+      max-width: min(100%, 22rem);
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+
+    #signup-form {
+      gap: 0.75rem;
+    }
+
+    .form-group {
+      gap: 0.25rem;
+    }
+
+    #signup-form label {
+      font-size: 0.92rem;
+      margin-bottom: 0.25rem;
+    }
+
+    #signup-form input[type="text"],
+    #signup-form input[type="password"],
+    #signup-form input[type="email"] {
+      padding: 0.625rem 0.75rem;
+      font-size: 0.95rem;
+    }
+
+    #signup-form button {
+      padding: 0.85rem 1rem;
+      font-size: 0.95rem;
+    }
+
+    .form-group ul {
+      margin-top: 0.25rem;
+    }
+  }
 </style>
 
 <script>
