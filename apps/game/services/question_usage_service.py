@@ -29,18 +29,22 @@ class QuestionUsageService:
         ids.update(
             QuestionRound.objects.filter(couple=couple).values_list("question_id", flat=True)
         )
-        # Questions actuellement affichées (session en cours)
+        # Questions actuellement affichées ou réservées pour le couple
         ids.update(
             GameSession.objects.filter(couple=couple)
             .exclude(current_question_id__isnull=True)
-            .exclude(status=SessionStatus.FINISHED)
             .values_list("current_question_id", flat=True)
+        )
+        ids.update(
+            GameSession.objects.filter(couple=couple)
+            .exclude(prefetched_question_id__isnull=True)
+            .values_list("prefetched_question_id", flat=True)
         )
         ids.discard(None)
         return ids
 
     @staticmethod
-    def get_used_question_texts(couple: Couple, limit: int = 40) -> list[str]:
+    def get_used_question_texts(couple: Couple, limit: int = 100) -> list[str]:
         """Textes des questions déjà posées (pour le prompt IA)."""
         used_ids = QuestionUsageService.get_used_question_ids(couple)
         if not used_ids:

@@ -182,6 +182,7 @@ QUESTIONS_PER_LEVEL = env.int("QUESTIONS_PER_LEVEL", default=21)
 AI_PROVIDER = env("AI_PROVIDER", default="groq")
 GROQ_API_KEY = env("GROQ_API_KEY", default="")
 GROQ_MODEL = env("GROQ_MODEL", default="llama-3.1-8b-instant")
+GROQ_FALLBACK_MODEL = env("GROQ_FALLBACK_MODEL", default="llama-3.3-70b-versatile")
 GEMINI_API_KEY = env("GEMINI_API_KEY", default="") or env("AI_GEMINI_API_KEY", default="")
 AI_GEMINI_API_KEY = GEMINI_API_KEY  # rétrocompatibilité
 GEMINI_MODEL = env("GEMINI_MODEL", default="gemini-2.0-flash")

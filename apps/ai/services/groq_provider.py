@@ -115,16 +115,54 @@ class GroqProvider(AIProvider):
         """Génère un lot de questions ; fallback statique si échec."""
         cat = normalize_category(category)
         try:
-            prompt = question_prompt(
-                cat, count=count, spicy_level=spicy_level, exclude_texts=exclude_texts
-            )
-            raw = self.generate_text(prompt)
-            items = parse_questions_json(raw, cat, spicy_level)
-            if items:
-                return items[:count]
+            return self._generate_questions(cat, count, spicy_level, exclude_texts)
         except AIProviderError as exc:
+            if self._should_retry_with_fallback_model(exc):
+                try:
+                    return self._generate_questions(cat, count, spicy_level, exclude_texts)
+                except AIProviderError as exc_retry:
+                    logger.warning(
+                        "Groq questions fallback after retry: %s",
+                        exc_retry,
+                    )
+                    return self._fallback.generate_questions(
+                        cat, count, spicy_level, exclude_texts
+                    )
             logger.warning("Groq questions fallback: %s", exc)
-        return self._fallback.generate_questions(cat, count, spicy_level, exclude_texts)
+            return self._fallback.generate_questions(cat, count, spicy_level, exclude_texts)
+
+    def _generate_questions(
+        self,
+        category: str,
+        count: int,
+        spicy_level: int = 0,
+        exclude_texts: list[str] | None = None,
+    ) -> list[dict]:
+        prompt = question_prompt(
+            category, count=count, spicy_level=spicy_level, exclude_texts=exclude_texts
+        )
+        raw = self.generate_text(prompt)
+        items = parse_questions_json(raw, category, spicy_level)
+        if items:
+            return items[:count]
+        raise AIProviderError("Groq a renvoyé des questions invalides.")
+
+    def _should_retry_with_fallback_model(self, exc: AIProviderError) -> bool:
+        text = str(exc).lower()
+        if "model_not_found" in text or "does not exist" in text or "do not have access" in text:
+            fallback_model = getattr(
+                settings, "GROQ_FALLBACK_MODEL", "llama-3.3-70b-versatile"
+            )
+            if fallback_model and fallback_model != self.model_name:
+                logger.warning(
+                    "Groq model unavailable (%s). Retrying with fallback model %s.",
+                    self.model_name,
+                    fallback_model,
+                )
+                self.model_name = fallback_model
+                self._client = None
+                return True
+        return False
 
     def generate_emotional_phrase(self, context: str = "") -> str:
         try:
