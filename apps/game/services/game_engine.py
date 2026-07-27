@@ -135,7 +135,7 @@ class GameEngine:
     @transaction.atomic
     def _take_prefetched_question(session_id: int) -> Question | None:
         session = (
-            GameSession.objects.select_for_update()
+            GameSession.objects.select_for_update(of=("self",))
             .select_related("couple", "prefetched_question")
             .get(pk=session_id)
         )
